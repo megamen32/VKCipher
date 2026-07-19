@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.3.1
+// @version      5.3.2
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -33,7 +33,7 @@
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.3.1
+    // VK P2P AES-GCM v5.3.2
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -50,7 +50,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.3.1';
+    const APP_VERSION = '5.3.2';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
