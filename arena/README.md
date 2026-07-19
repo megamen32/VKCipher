@@ -16,6 +16,9 @@ npm run arena:inspect -- --plain "Проверочное сообщение"
 npm run test:arena
 ```
 
+Инструкция для безопасного прогона через OpenAI-compatible LLM endpoint и
+обновления тестов: [`LLM_TESTING.md`](LLM_TESTING.md).
+
 Начальный creator использует emoji без видимого префикса. Это рабочий transport baseline, а не обещание скрытности: начальный critic должен уверенно находить длинные равномерные emoji-последовательности.
 
 ## Как запустить двух агентов
