@@ -37,7 +37,7 @@ const CODEC_MARKERS = {
     cyrillic: '𐌓',
 };
 const RU_WORDS_DICTIONARY = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v1.txt'),
+    path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v2.txt'),
     'utf8'
 ).trim().split('\n');
 

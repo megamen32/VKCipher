@@ -41,16 +41,19 @@ const CODEC_MARKERS = {
     cyrillic: '𐌓',
 };
 
-test('словарь ru-common-8192-v1 имеет фиксированный порядок и SHA-256', () => {
-    const dictionaryPath = path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v1.txt');
+test('словарь ru-common-8192-v2 имеет фиксированный порядок, SHA-256 и denylist', () => {
+    const dictionaryPath = path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v2.txt');
+    const denylistPath = path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v2-denylist.txt');
     const raw = fs.readFileSync(dictionaryPath);
     const words = raw.toString('utf8').trimEnd().split('\n');
+    const denylist = fs.readFileSync(denylistPath, 'utf8').trimEnd().split('\n');
 
     expect(words).toHaveLength(8192);
     expect(new Set(words).size).toBe(8192);
     expect(words.every(word => /^[а-яё]+$/.test(word))).toBe(true);
+    expect(denylist.every(word => !words.includes(word))).toBe(true);
     expect(crypto.createHash('sha256').update(raw).digest('hex')).toBe(
-        'cb817661fb37174a5746718be6370c7eb6fc87b48186ea2a270cb25061a7597c'
+        '5d506ecb7ecff7ad659953240f2d86061599f077be6798c124f0df5c8964551b'
     );
 });
 
