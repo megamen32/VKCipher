@@ -88,7 +88,7 @@
 
                 CUSTOM_KEYS[name] = { key: keyHex, label };
                 saveCustomKeys();
-                currentKeySlot = name;
+                selectKeySlot(name, { rememberForChat: true });
 
                 overlay.remove();
                 updateEncryptButtonsTitle();
@@ -120,7 +120,7 @@
         const keyHex = bytesToHex(bytes);
 
         TEMP_KEY = keyHex;
-        currentKeySlot = '@temp';
+        selectKeySlot('@temp', { rememberForChat: true });
 
         updateEncryptButtonsTitle();
         scan();
@@ -226,7 +226,7 @@
             try {
                 const keys = await deriveKeyMaterialFromSeed(seed);
                 DERIVED_KEYS = keys;
-                currentKeySlot = DEFAULT_KEY_SLOT;
+                selectKeySlot(DEFAULT_KEY_SLOT, { rememberForChat: true });
 
                 if (saveCheckbox.checked) {
                     saveDerivedKeys(keys);
@@ -261,4 +261,3 @@
             }
         });
     }
-

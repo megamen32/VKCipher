@@ -60,6 +60,18 @@
         parentEl.dataset.vkdecDone = 'true';
     }
 
+    function createFragmentStatusInterface(parentEl, received, total, originalText) {
+        parentEl.innerHTML = '';
+        parentEl.dataset.vkdecOriginal = originalText;
+
+        const status = document.createElement('span');
+        status.className = 'vk-dec-fragment-status';
+        status.dataset.vkdecSkip = 'true';
+        status.textContent = `Получена часть зашифрованного сообщения: ${received} из ${total}`;
+        parentEl.appendChild(status);
+        parentEl.dataset.vkdecDone = 'true';
+    }
+
     function formatByteSize(size) {
         const value = Number(size) || 0;
         if (value < 1024) return `${value} B`;
@@ -548,22 +560,33 @@
 
         const text = extractMessageText(msgEl);
         const parsed = parseEncryptedMessage(text);
-        if (!parsed) return;
+        if (parsed) {
+            const keyHex = getAllKeys()[parsed.keyId];
+            if (!keyHex) return;
 
-        const keyHex = getAllKeys()[parsed.keyId];
-
-        if (!keyHex) {
-            console.warn(`🔑 Ключ "${parsed.keyId}" не найден`);
+            try {
+                const payload = decodePayloadForCodec(parsed.encodedPayload, parsed.codecId);
+                const decrypted = await decryptAESGCM(payload, keyHex);
+                createToggleInterface(parsed.originalText, decrypted, msgEl);
+            } catch (err) {
+                console.error('❌ Ошибка расшифровки:', err);
+                createErrorInterface(parsed.originalText, err.message, msgEl);
+            }
             return;
         }
 
-        try {
-            const payload = decodePayloadForCodec(parsed.encodedPayload, parsed.codecId);
-            const decrypted = await decryptAESGCM(payload, keyHex);
-            createToggleInterface(parsed.originalText, decrypted, msgEl);
-        } catch (err) {
-            console.error('❌ Ошибка расшифровки:', err);
-            createErrorInterface(parsed.originalText, err.message, msgEl);
+        if (!isWordsDictionaryText(text)) return;
+
+        for (const keyHex of Object.values(getAllKeys())) {
+            try {
+                const packet = await decryptWordMessage(text, keyHex);
+                if (packet) {
+                    await acceptWordFragment(packet, msgEl, text);
+                    return;
+                }
+            } catch {
+                // Обычный текст из словаря должен оставаться обычным текстом.
+            }
         }
     }
 
@@ -584,7 +607,7 @@
                 if (el.children.length) return;
 
                 const text = extractMessageText(el);
-                if (parseEncryptedMessage(text)) {
+                if (parseEncryptedMessage(text) || isWordsDictionaryText(text)) {
                     elements.add(el);
                 }
             });
@@ -592,4 +615,3 @@
 
         return elements;
     }
-

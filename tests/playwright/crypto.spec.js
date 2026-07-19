@@ -2,6 +2,8 @@
 // Браузер не нужен — крутится всё на node:crypto.
 const { test, expect } = require('@playwright/test');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const KDF_SALT = 'vk-p2p-aes-gcm-v1';
 const KDF_ITERATIONS = 250_000;
@@ -38,6 +40,19 @@ const CODEC_MARKERS = {
     emoji: '𐌄',
     cyrillic: '𐌓',
 };
+
+test('словарь ru-common-8192-v1 имеет фиксированный порядок и SHA-256', () => {
+    const dictionaryPath = path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v1.txt');
+    const raw = fs.readFileSync(dictionaryPath);
+    const words = raw.toString('utf8').trimEnd().split('\n');
+
+    expect(words).toHaveLength(8192);
+    expect(new Set(words).size).toBe(8192);
+    expect(words.every(word => /^[а-яё]+$/.test(word))).toBe(true);
+    expect(crypto.createHash('sha256').update(raw).digest('hex')).toBe(
+        'cb817661fb37174a5746718be6370c7eb6fc87b48186ea2a270cb25061a7597c'
+    );
+});
 
 function deriveKeyMaterialFromSeed(seed) {
     const derived = crypto.pbkdf2Sync(seed, KDF_SALT, KDF_ITERATIONS, 128, 'sha256');

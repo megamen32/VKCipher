@@ -251,10 +251,10 @@
     function resetAllKeys() {
         clearDerivedKeys();
         gmDeleteValueCompat(STORAGE_KEYS.CUSTOM_KEYS);
+        clearChatKeySlots();
         CUSTOM_KEYS = {};
         TEMP_KEY = null;
         currentKeySlot = DEFAULT_KEY_SLOT;
         updateEncryptButtonsTitle();
         showSeedSetupModal();
     }
-

@@ -22,6 +22,7 @@ const {
     getComposerText,
     renderEmojiAsImages,
     buildEncryptedMediaContainer,
+    encryptWordPackets,
 } = require('./test-support');
 
 test('init: скрипт грузится, рисует кнопки в старом поле ввода', async ({ page }) => {
@@ -347,6 +348,101 @@ test('menu settings: dropdown переключает кодировку на р�
     for (const ch of Array.from(payload)) {
         expect(CYRILLIC_ALPHABET.includes(ch)).toBe(true);
     }
+});
+
+test('русские слова: markerless пакет расшифровывается только после AES-GCM проверки', async ({ page }) => {
+    const seed = 'seed для словарного транспорта';
+    const derived = deriveDerivedKeys(seed);
+    const [cipherText] = encryptWordPackets('Привет, словарный транспорт!', derived.k1);
+
+    await openMockChat(page, {
+        url: 'https://example.com',
+        gmSeed: {
+            vk_p2p_derived_keys_v1: JSON.stringify(derived),
+            vk_p2p_settings_v1: JSON.stringify(makeBaseSettings({ cipherCodec: 'words' })),
+        },
+        body: `
+            <div class="ConvoMessage__text">${cipherText}</div>
+            <div class="ConvoMessage__text">вечер причина окно работа дорога</div>
+            <div class="ConvoComposer__inputPanel">
+                <div class="ComposerInput">
+                    <span contenteditable="true" class="ComposerInput__input ConvoComposer__input"
+                          role="textbox" aria-multiline="true"></span>
+                </div>
+                <button class="ConvoComposer__button" aria-label="Отправить">→</button>
+            </div>
+        `,
+    });
+
+    await expect(page.locator('.vk-dec-content')).toHaveText('Привет, словарный транспорт!');
+    await expect(page.locator('.ConvoMessage__text').nth(1)).toHaveText('вечер причина окно работа дорога');
+    await expect(page.locator('.vk-dec-error')).toHaveCount(0);
+});
+
+test('русские слова: фрагменты собираются в одно сообщение после получения всех частей', async ({ page }) => {
+    const seed = 'seed для сборки словарных частей';
+    const derived = deriveDerivedKeys(seed);
+    const plaintext = 'Длинное сообщение для сборки. '.repeat(80);
+    const fragments = encryptWordPackets(plaintext, derived.k1, 180);
+
+    await openMockChat(page, {
+        url: 'https://example.com',
+        gmSeed: {
+            vk_p2p_derived_keys_v1: JSON.stringify(derived),
+            vk_p2p_settings_v1: JSON.stringify(makeBaseSettings({ cipherCodec: 'words' })),
+        },
+        body: `${fragments.map(fragment => `<div class="ConvoMessage__text">${fragment}</div>`).join('')}
+            <div class="ConvoComposer__inputPanel">
+                <div class="ComposerInput"><span contenteditable="true" class="ComposerInput__input ConvoComposer__input"
+                    role="textbox" aria-multiline="true"></span></div>
+                <button class="ConvoComposer__button" aria-label="Отправить">→</button>
+            </div>`,
+    });
+
+    await expect(page.locator('.vk-dec-content')).toHaveText(plaintext);
+    expect(await page.locator('.vk-dec-fragment-status').count()).toBe(0);
+    expect(await page.locator('.vk-dec-error').count()).toBe(0);
+});
+
+test('chat keys: выбранный ключ запоминается отдельно и переключается при SPA-навигации', async ({ page }) => {
+    const derived = deriveDerivedKeys('seed для ключей по чатам');
+    const storedChatKeys = {
+        'vk:peer:101': 'k2',
+        'vk:peer:202': 'k3',
+        'vk:peer:-239277144': 'k4',
+    };
+
+    await openMockChat(page, {
+        url: 'https://example.com/convo/101?entrypoint=list_all',
+        gmSeed: {
+            vk_p2p_derived_keys_v1: JSON.stringify(derived),
+            vk_p2p_settings_v1: JSON.stringify(makeBaseSettings()),
+            vk_p2p_chat_key_slots_v1: JSON.stringify(storedChatKeys),
+        },
+    });
+
+    await expect(page.locator('#vk-p2p-key-btn')).toHaveAttribute('title', /Сейчас: k2/);
+
+    await page.locator('#vk-p2p-key-btn').click();
+    await expect(page.locator('.vk-p2p-menu-item-active')).toContainText('k2');
+    await page.locator('.vk-p2p-menu-item').filter({ hasText: 'k4' }).first().click();
+
+    const savedAfterSelection = await page.evaluate(() => {
+        return JSON.parse(window.__gmStore.get('vk_p2p_chat_key_slots_v1'));
+    });
+    expect(savedAfterSelection['vk:peer:101']).toBe('k4');
+
+    await page.evaluate(() => history.pushState({}, '', '/convo/202'));
+    await expect(page.locator('#vk-p2p-key-btn')).toHaveAttribute('title', /Сейчас: k3/);
+
+    await page.evaluate(() => history.pushState({}, '', '/convo/303'));
+    await expect(page.locator('#vk-p2p-key-btn')).toHaveAttribute('title', /Сейчас: k1/);
+
+    await page.evaluate(() => history.pushState({}, '', '/?sel=-239277144'));
+    await expect(page.locator('#vk-p2p-key-btn')).toHaveAttribute('title', /Сейчас: k4/);
+
+    await page.evaluate(() => history.pushState({}, '', '/convo/101'));
+    await expect(page.locator('#vk-p2p-key-btn')).toHaveAttribute('title', /Сейчас: k4/);
 });
 
 test('auto decrypt off: шифротекст остаётся как есть для всех сообщений', async ({ page }) => {

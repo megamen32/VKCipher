@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const KDF_SALT = 'vk-p2p-aes-gcm-v1';
 const KDF_ITERATIONS = 250_000;
@@ -34,6 +36,10 @@ const CODEC_MARKERS = {
     emoji: '𐌄',
     cyrillic: '𐌓',
 };
+const RU_WORDS_DICTIONARY = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'extension', 'dictionaries', 'ru-common-8192-v1.txt'),
+    'utf8'
+).trim().split('\n');
 
 function deriveDerivedKeys(seed) {
     const derived = crypto.pbkdf2Sync(seed, KDF_SALT, KDF_ITERATIONS, 128, 'sha256');
@@ -134,6 +140,51 @@ function buildEncryptedMediaContainer({ keyId = 'k1', keyHex, mime, originalName
     ]);
 }
 
+function encodeBytesToWords(bytes) {
+    const source = Buffer.concat([Buffer.alloc(4), Buffer.from(bytes)]);
+    source.writeUInt32BE(bytes.length, 0);
+    const words = [];
+    let accumulator = 0;
+    let bitCount = 0;
+
+    for (const byte of source) {
+        accumulator = (accumulator << 8) | byte;
+        bitCount += 8;
+        while (bitCount >= 13) {
+            bitCount -= 13;
+            words.push(RU_WORDS_DICTIONARY[(accumulator >>> bitCount) & 0x1fff]);
+            accumulator = bitCount ? accumulator & ((1 << bitCount) - 1) : 0;
+        }
+    }
+    if (bitCount) words.push(RU_WORDS_DICTIONARY[(accumulator << (13 - bitCount)) & 0x1fff]);
+    return words.join(' ');
+}
+
+function encryptWordPackets(plainText, keyHex, chunkBytes = 300) {
+    const source = Buffer.from(plainText, 'utf8');
+    const groupId = crypto.randomBytes(12);
+    const chunks = [];
+    for (let offset = 0; offset < source.length; offset += chunkBytes) {
+        chunks.push(source.subarray(offset, offset + chunkBytes));
+    }
+
+    return chunks.map((payload, partIndex) => {
+        const packet = Buffer.alloc(32 + payload.length);
+        Buffer.from('VKW1').copy(packet, 0);
+        packet[4] = 1;
+        packet[5] = 0;
+        packet[6] = 1;
+        packet[7] = 1;
+        groupId.copy(packet, 8);
+        packet.writeUInt16BE(partIndex, 20);
+        packet.writeUInt16BE(chunks.length, 22);
+        packet.writeUInt32BE(source.length, 24);
+        packet.writeUInt32BE(payload.length, 28);
+        payload.copy(packet, 32);
+        return encodeBytesToWords(encryptBinaryPayload(packet, keyHex));
+    });
+}
+
 module.exports = {
     BASE64_ALPHABET,
     EMOJI_ALPHABET,
@@ -151,4 +202,7 @@ module.exports = {
     getComposerText,
     renderEmojiAsImages,
     buildEncryptedMediaContainer,
+    RU_WORDS_DICTIONARY,
+    encodeBytesToWords,
+    encryptWordPackets,
 };

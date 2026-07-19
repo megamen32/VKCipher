@@ -313,10 +313,12 @@
                         : slotId;
 
                 item.addEventListener('click', () => {
-                    currentKeySlot = slotId;
+                    selectKeySlot(slotId, { rememberForChat: true });
                     closeMenus();
-                    updateEncryptButtonsTitle();
-                    showToast(`✅ Выбран ключ: ${formatKeyDisplay(slotId)}`);
+                    const chatId = getCurrentChatId();
+                    showToast(chatId
+                        ? `✅ Для этого чата выбран ключ: ${formatKeyDisplay(slotId)}`
+                        : `✅ Выбран ключ: ${formatKeyDisplay(slotId)}`);
                 });
 
                 menu.appendChild(item);
@@ -349,6 +351,7 @@
             [
                 { value: 'emoji', label: 'Emoji' },
                 { value: 'cyrillic', label: 'Русский алфавит' },
+                { value: 'words', label: 'Русские слова (экспериментально)' },
                 { value: 'base64', label: 'Base64' }
             ],
             value => {
@@ -395,7 +398,8 @@
         if (TEMP_KEY) {
             addMenuItem(menu, '🧹 Удалить временный ключ', () => {
                 TEMP_KEY = null;
-                if (currentKeySlot === '@temp') currentKeySlot = DEFAULT_KEY_SLOT;
+                forgetChatKeySlot('@temp');
+                if (currentKeySlot === '@temp') currentKeySlot = getFallbackKeySlot();
                 closeMenus();
                 updateEncryptButtonsTitle();
                 showToast('✅ Временный ключ удалён');
@@ -417,8 +421,9 @@
 
                     delete CUSTOM_KEYS[name];
                     saveCustomKeys();
+                    forgetChatKeySlot(name);
 
-                    if (currentKeySlot === name) currentKeySlot = DEFAULT_KEY_SLOT;
+                    if (currentKeySlot === name) currentKeySlot = getFallbackKeySlot();
 
                     closeMenus();
                     updateEncryptButtonsTitle();

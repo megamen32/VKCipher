@@ -306,8 +306,21 @@
         }
 
         try {
-            const b64 = await encryptAESGCM(plainText, keyHex);
             const codecId = normalizeCodecId(settings.cipherCodec);
+
+            if (codecId === 'words') {
+                const messages = await encodePlaintextToWordMessages(plainText, keyHex);
+                pendingWordMessages = messages.slice(1);
+                setInputPlainText(inputEl, messages[0]);
+                lastEncryptedAt = Date.now();
+                if (messages.length > 1) {
+                    showToast(`✅ Сообщение разбито на ${messages.length} частей`);
+                }
+                return true;
+            }
+
+            const b64 = await encryptAESGCM(plainText, keyHex);
+            pendingWordMessages = [];
             const payload = encodePayloadForCodec(b64, codecId);
             const encryptedMsg = formatEncryptedMessage(currentKeySlot, payload, codecId);
 
@@ -319,6 +332,22 @@
             console.error('❌ Ошибка шифрования:', err);
             if (showErrors) showToast('❌ Не удалось зашифровать: ' + err.message);
             return false;
+        }
+    }
+
+    async function sendPendingWordMessages() {
+        while (pendingWordMessages.length) {
+            const inputEl = getComposerInput();
+            const panel = getComposerPanel(inputEl);
+            const sendBtn = findSendButton(panel);
+            if (!inputEl || !sendBtn) {
+                showToast('⚠️ Не удалось отправить оставшиеся части');
+                return;
+            }
+
+            setInputPlainText(inputEl, pendingWordMessages.shift());
+            sendBtn.click();
+            await new Promise(resolve => setTimeout(resolve, 220));
         }
     }
 
@@ -366,6 +395,11 @@
 
                 if (sendBtn) {
                     sendBtn.click();
+                    if (pendingWordMessages.length) {
+                        setTimeout(() => {
+                            sendPendingWordMessages();
+                        }, 260);
+                    }
                 } else {
                     showToast('⚠️ Зашифровал, но не нашёл кнопку отправки');
                 }
@@ -401,6 +435,20 @@
         sendBtn.dataset.vkP2PSendAttached = 'true';
 
         sendBtn.addEventListener('click', (e) => {
+            if (pendingWordMessages.length && !settings.autoEncrypt && !isAutoSending) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation?.();
+                isAutoSending = true;
+                sendBtn.click();
+                setTimeout(() => {
+                    sendPendingWordMessages().finally(() => {
+                        isAutoSending = false;
+                    });
+                }, 260);
+                return;
+            }
+
             if (skipNextAutoEncrypt) return;
             if (!settings.autoEncrypt) return;
             if (isAutoSending) return;
@@ -413,4 +461,3 @@
             autoEncryptAndSend(e);
         }, true);
     }
-

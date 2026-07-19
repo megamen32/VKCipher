@@ -1,6 +1,6 @@
 {
   "name": "vkencrypt",
-  "version": "5.2.0",
+  "version": "5.3.0",
   "description": "Шифрует сообщения в ВКонтакте. Установка — 5 секунд.",
   "license": "MIT",
   "repository": {
@@ -12,8 +12,11 @@
     "url": "https://github.com/megamen32/vkencrypt/issues"
   },
   "scripts": {
+    "arena": "node arena/run.js",
+    "arena:inspect": "node arena/inspect.js",
     "build": "bash extension/build.sh",
     "test": "playwright test",
+    "test:arena": "playwright test tests/playwright/adversarial-arena.spec.js",
     "test:headed": "playwright test --headed",
     "test:live": "RUN_LIVE=1 playwright test --config=playwright.live.config.js"
   },

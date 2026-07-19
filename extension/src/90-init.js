@@ -4,6 +4,7 @@
 
     function scan() {
         injectStyles();
+        applyRememberedKeyForCurrentChat();
 
         getIncomingMessageElements().forEach(el => processIncomingMessage(el));
         decorateIncomingMediaLinks();
@@ -26,6 +27,7 @@
 
         loadSettings();
         loadCustomKeys();
+        loadChatKeySlots();
 
         DERIVED_KEYS = loadDerivedKeys();
         initProtectedVoiceRecorder();
@@ -33,6 +35,9 @@
         if (!DERIVED_KEYS && Object.keys(CUSTOM_KEYS).length) {
             currentKeySlot = Object.keys(CUSTOM_KEYS)[0];
         }
+
+        applyRememberedKeyForCurrentChat({ force: true });
+        initChatKeyNavigation();
 
         console.log(`🔐 ${APP_NAME} v${APP_VERSION} loaded`);
         console.log('🔑 Derived keys:', DERIVED_KEYS ? 'yes' : 'no');

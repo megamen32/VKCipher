@@ -113,6 +113,7 @@
                 <select class="vk-p2p-select" id="vk-p2p-codec-first">
                     <option value="emoji">Emoji</option>
                     <option value="cyrillic">Русский алфавит</option>
+                    <option value="words">Русские слова (экспериментально)</option>
                     <option value="base64">Base64</option>
                 </select>
 
@@ -162,7 +163,7 @@
                 const keys = await deriveKeyMaterialFromSeed(seed);
 
                 DERIVED_KEYS = keys;
-                currentKeySlot = DEFAULT_KEY_SLOT;
+                selectKeySlot(DEFAULT_KEY_SLOT, { rememberForChat: true });
 
                 settings.autoEncrypt = Boolean(autoCheckbox.checked);
                 settings.cipherCodec = normalizeCodecId(codecSelect.value);
@@ -196,4 +197,3 @@
             }
         });
     }
-
