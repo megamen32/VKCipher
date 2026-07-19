@@ -19,6 +19,9 @@ npm run test:arena
 Инструкция для безопасного прогона через OpenAI-compatible LLM endpoint и
 обновления тестов: [`LLM_TESTING.md`](LLM_TESTING.md).
 
+Для консервативной разметки слов запускайте `node arena/classify-dictionary.js`.
+Скрипт сохраняет только JSON-разметку, а ключ читает из `LLM_API_KEY`.
+
 Начальный creator использует emoji без видимого префикса. Это рабочий transport baseline, а не обещание скрытности: начальный critic должен уверенно находить длинные равномерные emoji-последовательности.
 
 ## Как запустить двух агентов

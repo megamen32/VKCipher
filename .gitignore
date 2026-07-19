@@ -17,6 +17,7 @@ bot/vkencrypt.service
 bot/keys.json
 extension/dist/
 vkencrypt_userscript_*.js
+arena/artifacts/
 
 # ОС
 .DS_Store
