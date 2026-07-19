@@ -6,8 +6,8 @@ const path = require('node:path');
 const DEFAULT_INPUT = path.join(__dirname, '..', 'extension', 'dictionaries', 'ru-common-8192-v3.txt');
 const DEFAULT_OUTPUT = path.join(__dirname, 'artifacts', 'dictionary-safety.json');
 const DEFAULT_BASE_URL = 'https://llm.bezrabotnyi.com/v1';
-const DEFAULT_MODEL = 'gemma4';
-const DEFAULT_BATCH_SIZE = 64;
+const DEFAULT_MODELS = ['gemma4', 'qwen3.5'];
+const DEFAULT_BATCH_SIZE = 256;
 
 function getArgument(name, fallback) {
     const prefix = `--${name}=`;
@@ -31,7 +31,7 @@ function parseResponse(body, words) {
     }
     if (parsed.every(row => row && typeof row.word === 'string' && typeof row.label === 'string')) {
         const byWord = new Map(parsed.map(row => [row.word, row.label]));
-        return words.map(word => byWord.get(word));
+        return words.map(word => byWord.get(word) || 'borderline');
     }
     throw new Error('LLM response has an unsupported label format');
 }
@@ -49,23 +49,24 @@ function makePrompt(words) {
 }
 
 async function classifyBatch({ baseUrl, apiKey, model, words }) {
-    const response = await fetch(`${baseUrl.replace(/\/$/u, '')}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            authorization: `Bearer ${apiKey}`,
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-            model,
-            temperature: 0,
-            messages: [
-                { role: 'system', content: 'Ты строгий классификатор слов. Не добавляй пояснений вне JSON.' },
-                { role: 'user', content: makePrompt(words) },
-            ],
-        }),
-    });
-    if (!response.ok) throw new Error(`LLM HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
     try {
+        const response = await fetch(`${baseUrl.replace(/\/$/u, '')}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                authorization: `Bearer ${apiKey}`,
+                'content-type': 'application/json',
+            },
+            signal: AbortSignal.timeout(90_000),
+            body: JSON.stringify({
+                model,
+                temperature: 0,
+                messages: [
+                    { role: 'system', content: 'Ты строгий классификатор слов. Не добавляй пояснений вне JSON.' },
+                    { role: 'user', content: makePrompt(words) },
+                ],
+            }),
+        });
+        if (!response.ok) throw new Error(`LLM HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
         const labels = parseResponse(await response.json(), words);
         return words.map((word, index) => ({
             word,
@@ -93,7 +94,11 @@ async function main() {
 
     const words = (await fs.readFile(input, 'utf8')).trimEnd().split('\n');
     const baseUrl = process.env.LLM_BASE_URL || DEFAULT_BASE_URL;
-    const model = process.env.LLM_MODEL || DEFAULT_MODEL;
+    const models = (process.env.LLM_MODELS || process.env.LLM_MODEL || DEFAULT_MODELS.join(','))
+        .split(',')
+        .map(model => model.trim())
+        .filter(Boolean);
+    if (!models.length) throw new Error('Set LLM_MODELS to at least one model');
     const batches = [];
     for (let offset = 0; offset < words.length; offset += batchSize) {
         batches.push({ offset, words: words.slice(offset, offset + batchSize) });
@@ -103,15 +108,40 @@ async function main() {
     async function worker() {
         while (nextBatch < batches.length) {
             const batch = batches[nextBatch++];
-            const result = await classifyBatch({ baseUrl, apiKey, model, words: batch.words });
-            result.forEach((decision, index) => { decisions[batch.offset + index] = decision; });
+            const modelResults = await Promise.all(models.map(async model => ({
+                model,
+                decisions: await classifyBatch({ baseUrl, apiKey, model, words: batch.words })
+            })));
+            modelResults.forEach(result => {
+                result.decisions.forEach((decision, index) => {
+                    decisions[batch.offset + index] ||= {
+                        word: batch.words[index],
+                        labels: {}
+                    };
+                    decisions[batch.offset + index].labels[result.model] = decision.label;
+                });
+            });
+            decisions.slice(batch.offset, batch.offset + batch.words.length).forEach(decision => {
+                const labels = Object.values(decision.labels);
+                decision.label = labels.includes('unsafe')
+                    ? 'unsafe'
+                    : labels.includes('borderline')
+                        ? 'borderline'
+                        : 'safe';
+            });
             process.stderr.write(`classified ${decisions.filter(Boolean).length}/${words.length}\n`);
         }
     }
     await Promise.all(Array.from({ length: Math.min(concurrency, batches.length) }, worker));
 
     await fs.mkdir(path.dirname(output), { recursive: true });
-    await fs.writeFile(output, `${JSON.stringify({ baseUrl, model, input, decisions }, null, 2)}\n`);
+    await fs.writeFile(output, `${JSON.stringify({
+        baseUrl,
+        models,
+        policy: 'safe only when every model returns safe; borderline or unsafe wins',
+        input,
+        decisions
+    }, null, 2)}\n`);
     process.stdout.write(`Wrote ${decisions.length} decisions to ${output}\n`);
 }
 
