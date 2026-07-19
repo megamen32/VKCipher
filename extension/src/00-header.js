@@ -110,7 +110,7 @@
 
     const IV_LEN = 12;
     const TAG_LEN = 16;
-    const WORDS_DICTIONARY_ID = 'ru-common-8192-v2';
+    const WORDS_DICTIONARY_ID = 'ru-common-8192-v3';
     const WORDS_BITS = 13;
     const MAX_VK_UTF16_UNITS = 4000;
     const WORDS_GROUP_TTL_MS = 7 * 24 * 60 * 60 * 1000;

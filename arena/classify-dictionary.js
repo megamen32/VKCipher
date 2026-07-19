@@ -3,7 +3,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const DEFAULT_INPUT = path.join(__dirname, '..', 'extension', 'dictionaries', 'ru-common-8192-v2.txt');
+const DEFAULT_INPUT = path.join(__dirname, '..', 'extension', 'dictionaries', 'ru-common-8192-v3.txt');
 const DEFAULT_OUTPUT = path.join(__dirname, 'artifacts', 'dictionary-safety.json');
 const DEFAULT_BASE_URL = 'https://llm.bezrabotnyi.com/v1';
 const DEFAULT_MODEL = 'gemma4';
