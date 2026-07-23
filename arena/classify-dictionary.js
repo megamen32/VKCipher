@@ -2,8 +2,9 @@
 
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { classifyBatch } = require('./dictionary-llm');
 
-const DEFAULT_INPUT = path.join(__dirname, '..', 'extension', 'dictionaries', 'ru-common-8192-v3.txt');
+const DEFAULT_INPUT = path.join(__dirname, '..', 'extension', 'dictionaries', 'ru-common-8192-v4.txt');
 const DEFAULT_OUTPUT = path.join(__dirname, 'artifacts', 'dictionary-safety.json');
 const DEFAULT_BASE_URL = 'https://llm.bezrabotnyi.com/v1';
 const DEFAULT_MODELS = ['gemma4', 'qwen3.5'];
@@ -13,72 +14,6 @@ function getArgument(name, fallback) {
     const prefix = `--${name}=`;
     const value = process.argv.find(argument => argument.startsWith(prefix));
     return value ? value.slice(prefix.length) : fallback;
-}
-
-function parseResponse(body, words) {
-    const content = body?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string') throw new Error('LLM response has no chat completion content');
-    const json = content.replace(/^```(?:json)?\s*/u, '').replace(/\s*```$/u, '').trim();
-    const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) throw new Error('LLM response must be a JSON array');
-    if (parsed.every(word => typeof word === 'string') && parsed.every(word => words.includes(word))) {
-        const risky = new Set(parsed);
-        return words.map(word => risky.has(word) ? 'borderline' : 'safe');
-    }
-    if (parsed.every(label => typeof label === 'string')) {
-        if (parsed.length !== words.length) throw new Error(`LLM response must contain exactly ${words.length} labels`);
-        return parsed.map(label => ({ S: 'safe', B: 'borderline', U: 'unsafe' }[label] || label));
-    }
-    if (parsed.every(row => row && typeof row.word === 'string' && typeof row.label === 'string')) {
-        const byWord = new Map(parsed.map(row => [row.word, row.label]));
-        return words.map(word => byWord.get(word) || 'borderline');
-    }
-    throw new Error('LLM response has an unsupported label format');
-}
-
-function makePrompt(words) {
-    return [
-        'Классифицируй русские слова по безопасности для нейтрального словаря шифротекста.',
-        'Оцени слово только в изоляции, без придуманных предложений.',
-        'safe: бытовое, нейтральное, не связанное с насилием, оружием, самоповреждением, наркотиками, преступлениями, экстремизмом, сексуальным контентом или политическим насилием.',
-        'borderline: двусмысленное, потенциально чувствительное, имя собственное, жаргон или слово, которое отдельные фильтры могут пометить.',
-        'unsafe: явно относится к опасной или запрещённой теме.',
-        'Для максимальной консервативности оставляй только safe. Верни только JSON-массив строк: перечисли точные слова, которые borderline или unsafe. Safe-слова не перечисляй. Если все слова safe, верни []. Не добавляй пояснений и не меняй написание.',
-        `Слова: ${JSON.stringify(words)}`,
-    ].join('\n');
-}
-
-async function classifyBatch({ baseUrl, apiKey, model, words }) {
-    try {
-        const response = await fetch(`${baseUrl.replace(/\/$/u, '')}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                authorization: `Bearer ${apiKey}`,
-                'content-type': 'application/json',
-            },
-            signal: AbortSignal.timeout(90_000),
-            body: JSON.stringify({
-                model,
-                temperature: 0,
-                messages: [
-                    { role: 'system', content: 'Ты строгий классификатор слов. Не добавляй пояснений вне JSON.' },
-                    { role: 'user', content: makePrompt(words) },
-                ],
-            }),
-        });
-        if (!response.ok) throw new Error(`LLM HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
-        const labels = parseResponse(await response.json(), words);
-        return words.map((word, index) => ({
-            word,
-            label: ['safe', 'borderline', 'unsafe'].includes(labels[index]) ? labels[index] : 'safe',
-        }));
-    } catch (error) {
-        if (words.length <= 16) throw error;
-        const midpoint = Math.ceil(words.length / 2);
-        const left = await classifyBatch({ baseUrl, apiKey, model, words: words.slice(0, midpoint) });
-        const right = await classifyBatch({ baseUrl, apiKey, model, words: words.slice(midpoint) });
-        return [...left, ...right];
-    }
 }
 
 async function main() {
