@@ -12,6 +12,18 @@
 2. Нажмите **[Установить VKEncrypt](https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js)** — Tampermonkey сам откроет окно установки. Жмите «Установить».
 3. Откройте `vk.com`, `vk.ru` или `web.vk.me` и зайдите в любой чат.
 
+### Chrome — тестовая MV3-сборка
+
+Для ручной установки расширения соберите ZIP:
+
+```bash
+npm run build:chrome
+```
+
+Архив появится в `dist/chrome/`. В Chrome откройте `chrome://extensions`, включите «Режим разработчика», выберите «Загрузить распакованное расширение» и укажите `dist/chrome/package`. ZIP предназначен для релизов и ручного тестирования; установка для обычных пользователей требует публикации в Chrome Web Store.
+
+Chrome-сборка пока использует тот же userscript как content script. Текстовые сообщения и UI используют существующую реализацию; cross-origin расшифровка медиа через `GM_xmlhttpRequest` ещё требует отдельного extension service-worker bridge.
+
 ### iPhone — Safari
 
 1. Установите бесплатное приложение [Userscripts](https://apps.apple.com/app/userscripts/id1463296397) из App Store.

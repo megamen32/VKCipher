@@ -16,6 +16,8 @@
     "arena:inspect": "node arena/inspect.js",
     "dictionary:build": "node arena/build-word-dictionary.js",
     "build": "bash extension/build.sh",
+    "build:chrome": "npm run build && node scripts/build-chrome.mjs",
+    "test:chrome-package": "node --test tests/chrome-package.test.mjs",
     "test": "playwright test",
     "test:middleware": "node --test tests/vk-middleware.test.mjs",
     "test:dictionary": "node --test tests/dictionary-orchestrator.test.js",

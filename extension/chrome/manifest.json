@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "VKEncrypt",
+  "version": "5.4.0",
+  "description": "P2P encryption for VK messages",
+  "action": {
+    "default_title": "VKEncrypt"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://vk.com/*",
+        "https://*.vk.com/*",
+        "https://vk.ru/*",
+        "https://*.vk.ru/*",
+        "https://web.vk.me/*",
+        "https://m.web.vk.me/*"
+      ],
+      "js": ["vkencrypt.user.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://vk.com/*",
+    "https://*.vk.com/*",
+    "https://vk.ru/*",
+    "https://*.vk.ru/*",
+    "https://web.vk.me/*",
+    "https://m.web.vk.me/*",
+    "https://*.userapi.com/*",
+    "https://*.mycdn.me/*"
+  ]
+}
