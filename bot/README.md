@@ -16,9 +16,23 @@ bot/
 ├── .env.example                 # Шаблон .env (режим hex-ключей и/или seed)
 ├── vkencrypt.service.template   # Шаблон systemd-юнита
 ├── deploy.sh                    # Установка + systemd + (опционально) сборка userscript
+├── node/                         # Node.js middleware для vk-io и @openclaw-vk/vk
 ├── keys.json                    # Текущие ключи (создаётся командами, gitignored)
 └── README.md
 ```
+
+## Node.js middleware для VK-ботов
+
+Если бот написан на Node.js и использует `vk-io`, подключи общий адаптер из [node/README.md](node/README.md). Он работает на границе VK-канала: входящие шифротексты расшифровываются до обработчиков бота, а ответы зашифровываются после них. Сессия выбирает ключ отдельно для каждого `account + peer`.
+
+Для `@openclaw-vk/vk` используй установщик:
+
+```bash
+node bot/node/openclaw-vk-encrypt.mjs install
+openclaw gateway restart
+```
+
+Установщик патчит только VK-плагин. Конфигурация ключей хранится по каналам и аккаунтам в `~/.openclaw/vkencrypt.json`; секреты должны находиться в отдельных файлах с правами `600`. Это отдельный Node-адаптер и не меняет поведение других каналов OpenClaw.
 
 ## Установка и запуск
 

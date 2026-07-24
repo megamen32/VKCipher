@@ -17,6 +17,7 @@
     "dictionary:build": "node arena/build-word-dictionary.js",
     "build": "bash extension/build.sh",
     "test": "playwright test",
+    "test:middleware": "node --test tests/vk-middleware.test.mjs",
     "test:dictionary": "node --test tests/dictionary-orchestrator.test.js",
     "test:arena": "playwright test tests/playwright/adversarial-arena.spec.js",
     "test:headed": "playwright test --headed",
