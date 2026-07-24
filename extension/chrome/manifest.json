@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VKEncrypt",
-  "version": "5.4.0",
+  "version": "5.5.0",
   "description": "P2P encryption for VK messages",
   "action": {
     "default_title": "VKEncrypt"
@@ -14,7 +14,12 @@
         "https://vk.ru/*",
         "https://*.vk.ru/*",
         "https://web.vk.me/*",
-        "https://m.web.vk.me/*"
+        "https://m.web.vk.me/*",
+        "https://max.ru/*",
+        "https://*.max.ru/*",
+        "https://web.max.ru/*",
+        "https://web.telegram.org/*",
+        "https://*.telegram.org/*"
       ],
       "js": ["vkencrypt.user.js"],
       "run_at": "document_idle"
@@ -27,6 +32,11 @@
     "https://*.vk.ru/*",
     "https://web.vk.me/*",
     "https://m.web.vk.me/*",
+    "https://max.ru/*",
+    "https://*.max.ru/*",
+    "https://web.max.ru/*",
+    "https://web.telegram.org/*",
+    "https://*.telegram.org/*",
     "https://*.userapi.com/*",
     "https://*.mycdn.me/*"
   ]

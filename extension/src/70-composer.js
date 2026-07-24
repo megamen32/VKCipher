@@ -59,8 +59,7 @@
             'button[aria-label*="Отправить"]',
             '[aria-label*="Отправить"]',
             'button[type="submit"]',
-            '.im-send-btn',
-            '.ConvoComposer__button:last-child'
+            '.im-send-btn'
         ];
 
         for (const selector of selectors) {
@@ -69,6 +68,9 @@
 
             const button = found.closest('button, [role="button"], a, div') || found;
             const rect = button.getBoundingClientRect();
+            const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`.toLowerCase();
+
+            if (/голос|микрофон|voice|record/.test(label)) continue;
 
             if (rect.width > 0 && rect.height > 0) {
                 return button;
@@ -77,10 +79,70 @@
 
         const icon = root.querySelector('svg.vkuiIcon--send_24, .vkuiIcon--send_24');
         if (icon) {
-            return icon.closest('button, [role="button"], a, div') || icon;
+            const button = icon.closest('button, [role="button"], a, div') || icon;
+            const label = `${button.getAttribute?.('aria-label') || ''} ${button.getAttribute?.('title') || ''}`.toLowerCase();
+            if (!/голос|микрофон|voice|record/.test(label)) return button;
         }
 
         return null;
+    }
+
+    function waitForComposerClear(inputEl, previousText, timeoutMs = 1200) {
+        const isAccepted = () => !inputEl?.isConnected || getInputPlainText(inputEl) !== previousText;
+
+        if (!inputEl || isAccepted()) {
+            return Promise.resolve(true);
+        }
+
+        return new Promise(resolve => {
+            let settled = false;
+            let observer;
+
+            const finish = accepted => {
+                if (settled) return;
+                settled = true;
+                observer?.disconnect();
+                resolve(accepted);
+            };
+
+            observer = new MutationObserver(() => {
+                if (isAccepted()) finish(true);
+            });
+            observer.observe(inputEl, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+
+            if (isAccepted()) {
+                finish(true);
+                return;
+            }
+
+            setTimeout(() => finish(isAccepted()), timeoutMs);
+        });
+    }
+
+    async function triggerComposerSend(inputEl, panel, { verify = false } = {}) {
+        const previousText = getInputPlainText(inputEl);
+        const sendBtn = findSendButton(panel);
+
+        if (sendBtn) {
+            sendBtn.click();
+        } else if (inputEl) {
+            inputEl.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'Enter',
+                code: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true
+            }));
+        } else {
+            return false;
+        }
+
+        return verify ? waitForComposerClear(inputEl, previousText) : true;
     }
 
     function findComposerButton(panel, labels) {
@@ -311,6 +373,7 @@
             if (codecId === 'words') {
                 const messages = await encodePlaintextToWordMessages(plainText, keyHex);
                 pendingWordMessages = messages.slice(1);
+                pendingWordChatId = getCurrentChatId();
                 setInputPlainText(inputEl, messages[0]);
                 lastEncryptedAt = Date.now();
                 if (messages.length > 1) {
@@ -321,6 +384,7 @@
 
             const b64 = await encryptAESGCM(plainText, keyHex);
             pendingWordMessages = [];
+            pendingWordChatId = '';
             const payload = encodePayloadForCodec(b64, codecId);
             const encryptedMsg = formatEncryptedMessage(currentKeySlot, payload, codecId);
 
@@ -339,16 +403,31 @@
         while (pendingWordMessages.length) {
             const inputEl = getComposerInput();
             const panel = getComposerPanel(inputEl);
-            const sendBtn = findSendButton(panel);
-            if (!inputEl || !sendBtn) {
+            if (!inputEl) {
                 showToast('⚠️ Не удалось отправить оставшиеся части');
                 return;
             }
 
-            setInputPlainText(inputEl, pendingWordMessages.shift());
-            sendBtn.click();
+            if (pendingWordChatId && getCurrentChatId() !== pendingWordChatId) {
+                pendingWordMessages = [];
+                pendingWordChatId = '';
+                showToast('⚠️ Отправка отменена: открыт другой чат');
+                return;
+            }
+
+            const nextMessage = pendingWordMessages[0];
+            setInputPlainText(inputEl, nextMessage);
+            const accepted = await triggerComposerSend(inputEl, panel, { verify: true });
+            if (!accepted) {
+                showToast('⚠️ VK не подтвердил отправку части сообщения');
+                return;
+            }
+
+            pendingWordMessages.shift();
             await new Promise(resolve => setTimeout(resolve, 220));
         }
+
+        pendingWordChatId = '';
     }
 
     async function autoEncryptAndSend(event) {
@@ -387,15 +466,23 @@
 
         isAutoSending = true;
 
-        setTimeout(() => {
+        setTimeout(async () => {
             try {
                 const freshInput = getComposerInput();
                 const panel = getComposerPanel(freshInput);
-                const sendBtn = findSendButton(panel);
 
-                if (sendBtn) {
-                    sendBtn.click();
-                    if (pendingWordMessages.length) {
+                if (freshInput) {
+                    if (pendingWordChatId && getCurrentChatId() !== pendingWordChatId) {
+                        pendingWordMessages = [];
+                        pendingWordChatId = '';
+                        showToast('⚠️ Отправка отменена: открыт другой чат');
+                        return;
+                    }
+
+                    const accepted = await triggerComposerSend(freshInput, panel, { verify: true });
+                    if (!accepted) {
+                        showToast('⚠️ VK не подтвердил отправку зашифрованного сообщения');
+                    } else if (pendingWordMessages.length) {
                         setTimeout(() => {
                             sendPendingWordMessages();
                         }, 260);
@@ -413,6 +500,18 @@
 
     function handleComposerKeydown(e) {
         if (skipNextAutoEncrypt) return;
+
+        if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey &&
+            pendingWordMessages.length && !settings.autoEncrypt && !isAutoSending) {
+            isAutoSending = true;
+            setTimeout(() => {
+                sendPendingWordMessages().finally(() => {
+                    isAutoSending = false;
+                });
+            }, 260);
+            return;
+        }
+
         if (!settings.autoEncrypt) return;
         if (e.key !== 'Enter') return;
 

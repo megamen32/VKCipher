@@ -181,7 +181,7 @@
         return lines.join('\n');
     }
 
-    function sendPlainTextMessage(text, { sendNow = false } = {}) {
+    async function sendPlainTextMessage(text, { sendNow = false } = {}) {
         const inputEl = getComposerInput();
 
         if (!inputEl) {
@@ -197,16 +197,13 @@
         }
 
         const panel = getComposerPanel(inputEl);
-        const sendBtn = findSendButton(panel);
-
-        if (!sendBtn) {
-            showToast('⚠️ Инструкция вставлена, но кнопку отправки не нашёл');
-            return false;
-        }
 
         skipNextAutoEncrypt = true;
         try {
-            sendBtn.click();
+            if (!await triggerComposerSend(inputEl, panel, { verify: true })) {
+                showToast('⚠️ Инструкция вставлена, но отправку не удалось вызвать');
+                return false;
+            }
             showToast('✅ Инструкция отправлена без шифрования');
             return true;
         } finally {

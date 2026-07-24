@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.4.0
+// @version      5.5.0
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -10,6 +10,11 @@
 // @match        https://m.vk.ru/*
 // @match        https://web.vk.me/*
 // @match        https://m.web.vk.me/*
+// @match        https://max.ru/*
+// @match        https://*.max.ru/*
+// @match        https://web.max.ru/*
+// @match        https://web.telegram.org/*
+// @match        https://*.telegram.org/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
@@ -33,7 +38,7 @@
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.4.0
+    // VK P2P AES-GCM v5.5.0
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -50,7 +55,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.4.0';
+    const APP_VERSION = '5.5.0';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
@@ -148,6 +153,7 @@
     let skipNextAutoEncrypt = false;
     let lastEncryptedAt = 0;
     let pendingWordMessages = [];
+    let pendingWordChatId = '';
     let scanTimer = null;
     let mediaPreviewObserver = null;
     const MEDIA_DECRYPT_CACHE = new Map();

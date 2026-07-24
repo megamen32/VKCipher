@@ -22,19 +22,33 @@
         }, delay);
     }
 
-    function init() {
-        injectStyles();
+    function isVkHost(hostname = location.hostname) {
+        if (window.__VKENC_TEST_FORCE_VK === true) return true;
 
+        const host = String(hostname || '').toLowerCase();
+        return host === 'vk.com' || host.endsWith('.vk.com') ||
+            host === 'vk.ru' || host.endsWith('.vk.ru') ||
+            host === 'web.vk.me' || host === 'm.web.vk.me';
+    }
+
+    function init() {
         loadSettings();
         loadCustomKeys();
         loadChatKeySlots();
 
         DERIVED_KEYS = loadDerivedKeys();
-        initProtectedVoiceRecorder();
 
         if (!DERIVED_KEYS && Object.keys(CUSTOM_KEYS).length) {
             currentKeySlot = Object.keys(CUSTOM_KEYS)[0];
         }
+
+        // Keep the legacy VK DOM scanner out of other messenger adapters,
+        // while still making the shared keyring/settings available to them.
+        // about:blank remains enabled for the browser integration fixtures.
+        if (location.hostname && !isVkHost()) return;
+
+        injectStyles();
+        initProtectedVoiceRecorder();
 
         applyRememberedKeyForCurrentChat({ force: true });
         initChatKeyNavigation();

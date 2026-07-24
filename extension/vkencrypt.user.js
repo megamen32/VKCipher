@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.4.0
+// @version      5.5.0
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -10,6 +10,11 @@
 // @match        https://m.vk.ru/*
 // @match        https://web.vk.me/*
 // @match        https://m.web.vk.me/*
+// @match        https://max.ru/*
+// @match        https://*.max.ru/*
+// @match        https://web.max.ru/*
+// @match        https://web.telegram.org/*
+// @match        https://*.telegram.org/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
@@ -33,7 +38,7 @@
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.4.0
+    // VK P2P AES-GCM v5.5.0
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -50,7 +55,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.4.0';
+    const APP_VERSION = '5.5.0';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
@@ -148,6 +153,7 @@
     let skipNextAutoEncrypt = false;
     let lastEncryptedAt = 0;
     let pendingWordMessages = [];
+    let pendingWordChatId = '';
     let scanTimer = null;
     let mediaPreviewObserver = null;
     const MEDIA_DECRYPT_CACHE = new Map();
@@ -2960,8 +2966,7 @@
             'button[aria-label*="Отправить"]',
             '[aria-label*="Отправить"]',
             'button[type="submit"]',
-            '.im-send-btn',
-            '.ConvoComposer__button:last-child'
+            '.im-send-btn'
         ];
 
         for (const selector of selectors) {
@@ -2970,6 +2975,9 @@
 
             const button = found.closest('button, [role="button"], a, div') || found;
             const rect = button.getBoundingClientRect();
+            const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`.toLowerCase();
+
+            if (/голос|микрофон|voice|record/.test(label)) continue;
 
             if (rect.width > 0 && rect.height > 0) {
                 return button;
@@ -2978,10 +2986,70 @@
 
         const icon = root.querySelector('svg.vkuiIcon--send_24, .vkuiIcon--send_24');
         if (icon) {
-            return icon.closest('button, [role="button"], a, div') || icon;
+            const button = icon.closest('button, [role="button"], a, div') || icon;
+            const label = `${button.getAttribute?.('aria-label') || ''} ${button.getAttribute?.('title') || ''}`.toLowerCase();
+            if (!/голос|микрофон|voice|record/.test(label)) return button;
         }
 
         return null;
+    }
+
+    function waitForComposerClear(inputEl, previousText, timeoutMs = 1200) {
+        const isAccepted = () => !inputEl?.isConnected || getInputPlainText(inputEl) !== previousText;
+
+        if (!inputEl || isAccepted()) {
+            return Promise.resolve(true);
+        }
+
+        return new Promise(resolve => {
+            let settled = false;
+            let observer;
+
+            const finish = accepted => {
+                if (settled) return;
+                settled = true;
+                observer?.disconnect();
+                resolve(accepted);
+            };
+
+            observer = new MutationObserver(() => {
+                if (isAccepted()) finish(true);
+            });
+            observer.observe(inputEl, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+
+            if (isAccepted()) {
+                finish(true);
+                return;
+            }
+
+            setTimeout(() => finish(isAccepted()), timeoutMs);
+        });
+    }
+
+    async function triggerComposerSend(inputEl, panel, { verify = false } = {}) {
+        const previousText = getInputPlainText(inputEl);
+        const sendBtn = findSendButton(panel);
+
+        if (sendBtn) {
+            sendBtn.click();
+        } else if (inputEl) {
+            inputEl.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'Enter',
+                code: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true
+            }));
+        } else {
+            return false;
+        }
+
+        return verify ? waitForComposerClear(inputEl, previousText) : true;
     }
 
     function findComposerButton(panel, labels) {
@@ -3212,6 +3280,7 @@
             if (codecId === 'words') {
                 const messages = await encodePlaintextToWordMessages(plainText, keyHex);
                 pendingWordMessages = messages.slice(1);
+                pendingWordChatId = getCurrentChatId();
                 setInputPlainText(inputEl, messages[0]);
                 lastEncryptedAt = Date.now();
                 if (messages.length > 1) {
@@ -3222,6 +3291,7 @@
 
             const b64 = await encryptAESGCM(plainText, keyHex);
             pendingWordMessages = [];
+            pendingWordChatId = '';
             const payload = encodePayloadForCodec(b64, codecId);
             const encryptedMsg = formatEncryptedMessage(currentKeySlot, payload, codecId);
 
@@ -3240,16 +3310,31 @@
         while (pendingWordMessages.length) {
             const inputEl = getComposerInput();
             const panel = getComposerPanel(inputEl);
-            const sendBtn = findSendButton(panel);
-            if (!inputEl || !sendBtn) {
+            if (!inputEl) {
                 showToast('⚠️ Не удалось отправить оставшиеся части');
                 return;
             }
 
-            setInputPlainText(inputEl, pendingWordMessages.shift());
-            sendBtn.click();
+            if (pendingWordChatId && getCurrentChatId() !== pendingWordChatId) {
+                pendingWordMessages = [];
+                pendingWordChatId = '';
+                showToast('⚠️ Отправка отменена: открыт другой чат');
+                return;
+            }
+
+            const nextMessage = pendingWordMessages[0];
+            setInputPlainText(inputEl, nextMessage);
+            const accepted = await triggerComposerSend(inputEl, panel, { verify: true });
+            if (!accepted) {
+                showToast('⚠️ VK не подтвердил отправку части сообщения');
+                return;
+            }
+
+            pendingWordMessages.shift();
             await new Promise(resolve => setTimeout(resolve, 220));
         }
+
+        pendingWordChatId = '';
     }
 
     async function autoEncryptAndSend(event) {
@@ -3288,15 +3373,23 @@
 
         isAutoSending = true;
 
-        setTimeout(() => {
+        setTimeout(async () => {
             try {
                 const freshInput = getComposerInput();
                 const panel = getComposerPanel(freshInput);
-                const sendBtn = findSendButton(panel);
 
-                if (sendBtn) {
-                    sendBtn.click();
-                    if (pendingWordMessages.length) {
+                if (freshInput) {
+                    if (pendingWordChatId && getCurrentChatId() !== pendingWordChatId) {
+                        pendingWordMessages = [];
+                        pendingWordChatId = '';
+                        showToast('⚠️ Отправка отменена: открыт другой чат');
+                        return;
+                    }
+
+                    const accepted = await triggerComposerSend(freshInput, panel, { verify: true });
+                    if (!accepted) {
+                        showToast('⚠️ VK не подтвердил отправку зашифрованного сообщения');
+                    } else if (pendingWordMessages.length) {
                         setTimeout(() => {
                             sendPendingWordMessages();
                         }, 260);
@@ -3314,6 +3407,18 @@
 
     function handleComposerKeydown(e) {
         if (skipNextAutoEncrypt) return;
+
+        if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey &&
+            pendingWordMessages.length && !settings.autoEncrypt && !isAutoSending) {
+            isAutoSending = true;
+            setTimeout(() => {
+                sendPendingWordMessages().finally(() => {
+                    isAutoSending = false;
+                });
+            }, 260);
+            return;
+        }
+
         if (!settings.autoEncrypt) return;
         if (e.key !== 'Enter') return;
 
@@ -3872,7 +3977,7 @@
         return lines.join('\n');
     }
 
-    function sendPlainTextMessage(text, { sendNow = false } = {}) {
+    async function sendPlainTextMessage(text, { sendNow = false } = {}) {
         const inputEl = getComposerInput();
 
         if (!inputEl) {
@@ -3888,16 +3993,13 @@
         }
 
         const panel = getComposerPanel(inputEl);
-        const sendBtn = findSendButton(panel);
-
-        if (!sendBtn) {
-            showToast('⚠️ Инструкция вставлена, но кнопку отправки не нашёл');
-            return false;
-        }
 
         skipNextAutoEncrypt = true;
         try {
-            sendBtn.click();
+            if (!await triggerComposerSend(inputEl, panel, { verify: true })) {
+                showToast('⚠️ Инструкция вставлена, но отправку не удалось вызвать');
+                return false;
+            }
             showToast('✅ Инструкция отправлена без шифрования');
             return true;
         } finally {
@@ -4222,6 +4324,230 @@
         menu.style.visibility = 'visible';
     }
     // ============================================================
+    // Text adapters for Max and Telegram Web.
+    // They reuse the VKEncrypt crypto/key functions from the outer runtime.
+    // ============================================================
+
+    (function initTextMessengerAdapter() {
+        const host = location.hostname.toLowerCase();
+        const adapterId = host === 'max.ru' || host.endsWith('.max.ru')
+            ? 'max'
+            : host === 'web.telegram.org' || host.endsWith('.telegram.org')
+                ? 'telegram'
+                : '';
+
+        if (!adapterId) return;
+
+        const state = {
+            autoEncrypt: false,
+            busy: false,
+            lastChatId: '',
+            scanPending: false,
+            scanTimer: null
+        };
+
+        function getChatId() {
+            const url = new URL(location.href);
+            const query = ['chat', 'peer', 'conversation', 'id']
+                .map(name => url.searchParams.get(name))
+                .find(Boolean);
+            const pathMatch = /\/(?:chat|im|conversation|c)\/([^/?#]+)/i.exec(url.pathname);
+            const hash = url.hash.replace(/^#/, '');
+            const raw = query || pathMatch?.[1] || hash || url.pathname;
+            return `${adapterId}:${String(raw || '/').slice(0, 160)}`;
+        }
+
+        function findComposer() {
+            const selectors = [
+                '[contenteditable="true"][role="textbox"]',
+                '[contenteditable="true"]',
+                'textarea[placeholder]'
+            ];
+
+            for (const selector of selectors) {
+                const element = Array.from(document.querySelectorAll(selector)).find(candidate => {
+                    const rect = candidate.getBoundingClientRect();
+                    return rect.width > 40 && rect.height > 10 && candidate.offsetParent !== null;
+                });
+                if (element) return element;
+            }
+
+            return null;
+        }
+
+        function getComposerText(input) {
+            return 'value' in input ? input.value.trim() : input.innerText.trim();
+        }
+
+        function setComposerText(input, text) {
+            if ('value' in input) {
+                input.value = text;
+            } else {
+                input.innerText = text;
+            }
+            input.dispatchEvent(new InputEvent('input', {
+                bubbles: true,
+                inputType: 'insertText',
+                data: text
+            }));
+        }
+
+        function findSendButton(input) {
+            const root = input?.closest('form, [class*="composer"], [class*="Composer"], [class*="input"]');
+            const scope = root || document;
+            return Array.from(scope.querySelectorAll('button, [role="button"]')).find(button => {
+                const label = `${button.getAttribute('aria-label') || ''} ${button.textContent || ''}`.toLowerCase();
+                return /отправ|send|послать/.test(label) && button.offsetParent !== null;
+            }) || null;
+        }
+
+        function getMessageText(element) {
+            const textNode = element.querySelector(
+                '[data-message-text], [class*="message-text"], [class*="MessageText"], [class*="text-content"]'
+            );
+            return (textNode || element).innerText.trim();
+        }
+
+        function findMessages() {
+            const candidates = Array.from(document.querySelectorAll(
+                '[data-message-id], [data-mid], [role="listitem"], article, [class*="message"], [class*="Message"]'
+            ));
+            return candidates.filter(element => {
+                if (element.closest('form, [contenteditable="true"]')) return false;
+                if (element.dataset.vkP2PTextAdapterDone === 'true') return false;
+                const text = getMessageText(element);
+                return text.startsWith(FORMAT_START) && text.length > 12;
+            });
+        }
+
+        async function decryptIncoming() {
+            const keys = getAllKeys();
+            if (!Object.keys(keys).length || settings.autoDecrypt === false) return;
+
+            for (const message of findMessages()) {
+                const original = getMessageText(message);
+                const parsed = parseEncryptedMessage(original);
+                if (!parsed) {
+                    message.dataset.vkP2PTextAdapterDone = 'true';
+                    continue;
+                }
+
+                const keyHex = keys[parsed.keyId];
+                if (!keyHex) continue;
+
+                try {
+                    const payload = decodePayloadForCodec(parsed.encodedPayload, parsed.codecId);
+                    const plaintext = await decryptAESGCM(payload, keyHex);
+                    const textNode = message.querySelector(
+                        '[data-message-text], [class*="message-text"], [class*="MessageText"], [class*="text-content"]'
+                    ) || message;
+                    textNode.textContent = plaintext;
+                    message.dataset.vkP2PTextAdapterDone = 'true';
+                    message.dataset.vkP2POriginalCipher = original;
+                    message.title = `VKEncrypt: ${adapterId}`;
+                } catch {
+                    // A foreign envelope remains untouched.
+                }
+            }
+        }
+
+        async function encryptComposer(input) {
+            if (state.busy || !input) return false;
+            const plaintext = getComposerText(input);
+            const keyHex = getCurrentKeyHex();
+            if (!plaintext || !keyHex) return false;
+
+            state.busy = true;
+            try {
+                const codecId = settings.cipherCodec === 'base64' ? 'base64' : 'emoji';
+                const encoded = encodePayloadForCodec(await encryptAESGCM(plaintext, keyHex), codecId);
+                const envelope = formatEncryptedMessage(currentKeySlot, encoded, codecId);
+                setComposerText(input, envelope);
+                return true;
+            } finally {
+                state.busy = false;
+            }
+        }
+
+        function ensureControls(input) {
+            const parent = input?.closest('form, [class*="composer"], [class*="Composer"], [class*="input"]') || input?.parentElement;
+            const existing = parent?.querySelector('[data-vk-p2p-text-adapter="true"]');
+            if (!input || existing) return;
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.setAttribute('data-vk-p2p-text-adapter', 'true');
+            button.textContent = '🔒';
+            button.title = `${adapterId}: автошифрование выключено`;
+            button.style.cssText = 'margin:4px; padding:4px 8px; cursor:pointer;';
+            button.addEventListener('click', async () => {
+                const currentInput = findComposer();
+                if (!currentInput || !hasAnyKeys()) {
+                    showSeedSetupModal();
+                    return;
+                }
+                state.autoEncrypt = !state.autoEncrypt;
+                button.textContent = state.autoEncrypt ? '🔐' : '🔒';
+                button.title = `${adapterId}: автошифрование ${state.autoEncrypt ? 'включено' : 'выключено'}`;
+                if (state.autoEncrypt) await encryptComposer(currentInput);
+            });
+
+            const sendButton = findSendButton(input);
+            const insertParent = sendButton?.parentElement || parent;
+            insertParent?.insertBefore(button, sendButton || null);
+        }
+
+        async function onKeyDown(event) {
+            if (event.key !== 'Enter' || event.shiftKey || !state.autoEncrypt || state.busy) return;
+            const input = findComposer();
+            if (!input || (event.target !== input && !input.contains(event.target)) || !getComposerText(input)) return;
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            const encrypted = await encryptComposer(input);
+            if (!encrypted) return;
+
+            state.busy = true;
+            try {
+                input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            } finally {
+                setTimeout(() => {
+                    state.busy = false;
+                }, 0);
+            }
+        }
+
+        function scan() {
+            const input = findComposer();
+            const chatId = getChatId();
+            if (chatId !== state.lastChatId) {
+                state.lastChatId = chatId;
+                state.autoEncrypt = false;
+            }
+            ensureControls(input);
+            void decryptIncoming();
+        }
+
+        document.addEventListener('keydown', event => {
+            void onKeyDown(event);
+        }, true);
+
+        function scheduleScan() {
+            if (state.scanPending || state.scanTimer !== null) return;
+            state.scanPending = true;
+            state.scanTimer = setTimeout(() => {
+                state.scanTimer = null;
+                state.scanPending = false;
+                scan();
+            }, 0);
+        }
+
+        const observer = new MutationObserver(() => scheduleScan());
+        observer.observe(document.body, { childList: true, subtree: true });
+        scheduleScan();
+        console.log(`🔐 VKEncrypt text adapter loaded: ${adapterId}`);
+    })();
+    // ============================================================
     // Scan loop
     // ============================================================
 
@@ -4245,19 +4571,33 @@
         }, delay);
     }
 
-    function init() {
-        injectStyles();
+    function isVkHost(hostname = location.hostname) {
+        if (window.__VKENC_TEST_FORCE_VK === true) return true;
 
+        const host = String(hostname || '').toLowerCase();
+        return host === 'vk.com' || host.endsWith('.vk.com') ||
+            host === 'vk.ru' || host.endsWith('.vk.ru') ||
+            host === 'web.vk.me' || host === 'm.web.vk.me';
+    }
+
+    function init() {
         loadSettings();
         loadCustomKeys();
         loadChatKeySlots();
 
         DERIVED_KEYS = loadDerivedKeys();
-        initProtectedVoiceRecorder();
 
         if (!DERIVED_KEYS && Object.keys(CUSTOM_KEYS).length) {
             currentKeySlot = Object.keys(CUSTOM_KEYS)[0];
         }
+
+        // Keep the legacy VK DOM scanner out of other messenger adapters,
+        // while still making the shared keyring/settings available to them.
+        // about:blank remains enabled for the browser integration fixtures.
+        if (location.hostname && !isVkHost()) return;
+
+        injectStyles();
+        initProtectedVoiceRecorder();
 
         applyRememberedKeyForCurrentChat({ force: true });
         initChatKeyNavigation();

@@ -24,6 +24,22 @@ npm run build:chrome
 
 Chrome-сборка пока использует тот же userscript как content script. Текстовые сообщения и UI используют существующую реализацию; cross-origin расшифровка медиа через `GM_xmlhttpRequest` ещё требует отдельного extension service-worker bridge.
 
+### Firefox — тестовая MV3-сборка
+
+```bash
+npm run build:firefox
+```
+
+Архив появится в `dist/firefox/`. Для локального теста распакуйте `dist/firefox/package` через `about:debugging → This Firefox → Load Temporary Add-on`; постоянная публичная установка требует подписи Mozilla.
+
+### Safari — Web Extension pipeline
+
+```bash
+npm run build:safari
+```
+
+На macOS с Xcode команда дополнительно запускает `xcrun safari-web-extension-converter` и создаёт проект в `dist/safari/xcode/`. На Linux/CI без Apple tooling создаётся converter-ready source в `dist/safari/source/`.
+
 ### iPhone — Safari
 
 1. Установите бесплатное приложение [Userscripts](https://apps.apple.com/app/userscripts/id1463296397) из App Store.

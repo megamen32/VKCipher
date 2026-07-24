@@ -125,10 +125,10 @@ const MODERN_WEB_VK_BODY = `
 // стабы GM_*, форсит sync setTimeout, инжектит userscript через
 // page.evaluate (после полной загрузки страницы, когда document.body
 // уже существует и MutationObserver привязывается корректно).
-async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = null, url = 'about:blank', disableGMXmlhttpRequest = false } = {}) {
+async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = null, url = 'about:blank', disableGMXmlhttpRequest = false, syncTimers = true, expectVkControls = true, forceVkRuntime = true } = {}) {
     await page.goto(url);
     await page.evaluate(
-        ({ body, css, gmStubs, syncStub, seedScript, code, disableGMXmlhttpRequest }) => {
+        ({ body, css, gmStubs, syncStub, seedScript, code, disableGMXmlhttpRequest, forceVkRuntime }) => {
             const style = document.createElement('style');
             style.textContent = css;
             document.head.appendChild(style);
@@ -141,6 +141,8 @@ async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = n
             if (disableGMXmlhttpRequest) {
                 window.GM_xmlhttpRequest = undefined;
             }
+
+            window.__VKENC_TEST_FORCE_VK = forceVkRuntime;
 
             if (seedScript) {
                 (new Function(seedScript))();
@@ -157,14 +159,17 @@ async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = n
             body,
             css,
             gmStubs: GM_STUBS,
-            syncStub: SYNC_STUB,
+            syncStub: syncTimers ? SYNC_STUB : '',
             seedScript: buildSeedStoreScript(gmSeed),
             code: loadUserscriptCode(),
             disableGMXmlhttpRequest,
+            forceVkRuntime,
         }
     );
-    await page.waitForSelector('#vk-p2p-enc-btn', { state: 'attached', timeout: 5000 });
-    await page.waitForSelector('#vk-p2p-key-btn', { state: 'attached', timeout: 5000 });
+    if (expectVkControls) {
+        await page.waitForSelector('#vk-p2p-enc-btn', { state: 'attached', timeout: 5000 });
+        await page.waitForSelector('#vk-p2p-key-btn', { state: 'attached', timeout: 5000 });
+    }
 }
 
 async function openModernWebVkChat(page) {

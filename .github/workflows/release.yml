@@ -1,0 +1,54 @@
+name: Release VKEncrypt
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: |
+          npm test
+          npm run test:middleware
+          npm run test:dictionary
+          npm run test:chrome-package
+          npm run test:firefox-safari-package
+
+      - name: Build release artifacts
+        run: |
+          npm run build:chrome
+          npm run build:firefox
+          npm run build:safari-source
+          (cd dist/safari && zip -q -r "vkencrypt-safari-source-${{ github.ref_name }}.zip" source)
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            extension/vkencrypt.user.js
+            dist/chrome/vkencrypt-chrome-*.zip
+            dist/firefox/vkencrypt-firefox-*.zip
+            dist/safari/vkencrypt-safari-source-*.zip
