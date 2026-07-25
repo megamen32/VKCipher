@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.5.0
+// @version      5.5.1
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -38,7 +38,7 @@
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.5.0
+    // VK P2P AES-GCM v5.5.1
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -55,7 +55,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.5.0';
+    const APP_VERSION = '5.5.1';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
@@ -2958,10 +2958,29 @@
         return inputEl.parentElement;
     }
 
+    function isComposerSubmitButton(button) {
+        if (!button) return false;
+
+        const className = String(button.className || '');
+        if (/sendButton--submit|send-button--submit/.test(className)) return true;
+        if (/sendButton--mic|send-button--mic/.test(className)) return false;
+
+        if (button.querySelector(
+            '.ConvoComposer__buttonIcon--submit, [class*="buttonIcon--submit"], [class*="icon--submit"]'
+        )) {
+            return true;
+        }
+
+        const label = `${button.getAttribute('aria-label') || ''} ${button.title || ''} ${button.textContent || ''}`.toLowerCase();
+        return /отправить|send|submit/.test(label);
+    }
+
     function findSendButton(panel) {
         const root = panel || document;
 
         const selectors = [
+            'button[class*="sendButton--submit"]',
+            '[class*="send-button--submit"]',
             '.ConvoComposer__buttonIcon--submit',
             'button[aria-label*="Отправить"]',
             '[aria-label*="Отправить"]',
@@ -2977,7 +2996,7 @@
             const rect = button.getBoundingClientRect();
             const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`.toLowerCase();
 
-            if (/голос|микрофон|voice|record/.test(label)) continue;
+            if (/голос|микрофон|voice|record/.test(label) && !isComposerSubmitButton(button)) continue;
 
             if (rect.width > 0 && rect.height > 0) {
                 return button;
@@ -3478,6 +3497,10 @@
         const button = target?.closest?.('button, [role="button"]');
         if (!button) return null;
         if (button.dataset.vkP2PVoiceButton === 'true') return button;
+
+        // VK can keep the microphone aria-label while reusing the same node for Send.
+        // Structural submit markers must win over stale accessibility text.
+        if (isComposerSubmitButton(button)) return null;
 
         const label = `${button.getAttribute('aria-label') || ''} ${button.title || ''}`;
         if (/(голосов(ое|ого|ую)|аудиосообщени|начать запись)/i.test(label)) return button;

@@ -10,6 +10,10 @@
         if (!button) return null;
         if (button.dataset.vkP2PVoiceButton === 'true') return button;
 
+        // VK can keep the microphone aria-label while reusing the same node for Send.
+        // Structural submit markers must win over stale accessibility text.
+        if (isComposerSubmitButton(button)) return null;
+
         const label = `${button.getAttribute('aria-label') || ''} ${button.title || ''}`;
         if (/(голосов(ое|ого|ую)|аудиосообщени|начать запись)/i.test(label)) return button;
 

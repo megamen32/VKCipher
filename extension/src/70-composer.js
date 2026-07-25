@@ -51,10 +51,29 @@
         return inputEl.parentElement;
     }
 
+    function isComposerSubmitButton(button) {
+        if (!button) return false;
+
+        const className = String(button.className || '');
+        if (/sendButton--submit|send-button--submit/.test(className)) return true;
+        if (/sendButton--mic|send-button--mic/.test(className)) return false;
+
+        if (button.querySelector(
+            '.ConvoComposer__buttonIcon--submit, [class*="buttonIcon--submit"], [class*="icon--submit"]'
+        )) {
+            return true;
+        }
+
+        const label = `${button.getAttribute('aria-label') || ''} ${button.title || ''} ${button.textContent || ''}`.toLowerCase();
+        return /отправить|send|submit/.test(label);
+    }
+
     function findSendButton(panel) {
         const root = panel || document;
 
         const selectors = [
+            'button[class*="sendButton--submit"]',
+            '[class*="send-button--submit"]',
             '.ConvoComposer__buttonIcon--submit',
             'button[aria-label*="Отправить"]',
             '[aria-label*="Отправить"]',
@@ -70,7 +89,7 @@
             const rect = button.getBoundingClientRect();
             const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`.toLowerCase();
 
-            if (/голос|микрофон|voice|record/.test(label)) continue;
+            if (/голос|микрофон|voice|record/.test(label) && !isComposerSubmitButton(button)) continue;
 
             if (rect.width > 0 && rect.height > 0) {
                 return button;
