@@ -24,7 +24,7 @@ Hermes is installed on server-100 as v0.19.1. The plugin must be tested against 
 
 ## Blocker
 
-No dedicated VK community token/test peer is available for a live send/receive test. Do not reuse exposed historical tokens. Plugin is installed but not restarted or configured until that boundary is supplied.
+Text E2E blocker resolved with the operator-approved test community/token. Media encryption remains a separate follow-up; encrypted mode currently refuses unencrypted media.
 
 ## When complete
 
@@ -39,6 +39,7 @@ Evidence:
 - Existing VKEncrypt Node middleware regression: 7 passed.
 - Plugin source was installed on server-100 at `~/.hermes/plugins/vk` and enabled as `vk-platform`; no token, seed, or gateway restart was performed.
 - Hermes `security audit` also reports pre-existing vulnerabilities in the server-wide Hermes venv (Pillow, pyasn1, MCP, PyNaCl, Pygments, and others); the vendored plugin adds no third-party Python dependency.
+- Live VK E2E: server-100 connected to community `237416141`; browser sent an Emoji envelope; VK API history for peer `46887791` showed inbound and Hermes reply envelopes; browser rendered the reply as decrypted text.
 
 ## Completion checklist
 
@@ -49,3 +50,5 @@ Evidence:
 - [x] Run plugin registration smoke test against server-100 Hermes source.
 - [x] Record live-test blocker and move task to done.
 - [x] Install and enable plugin source on server-100 without credentials or service restart.
+- [x] Configure the operator-approved test token/seed and restart Hermes.
+- [x] Verify live VK encrypted inbound and encrypted Hermes reply.
