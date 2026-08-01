@@ -24,7 +24,7 @@ Hermes is installed on server-100 as v0.19.1. The plugin must be tested against 
 
 ## Blocker
 
-No dedicated VK community token/test peer is available for a live send/receive test. Do not reuse exposed historical tokens. Plugin installation on server-100 remains intentionally unperformed until that boundary is supplied.
+No dedicated VK community token/test peer is available for a live send/receive test. Do not reuse exposed historical tokens. Plugin is installed but not restarted or configured until that boundary is supplied.
 
 ## When complete
 
@@ -37,7 +37,8 @@ Evidence:
 - Local VKEncrypt tests: 9 passed, including Node <-> Python round trips for Emoji/Cyrillic/Base64, seed derivation, peer session reuse, chunk limits, and secret permissions.
 - Hermes 0.19.1 on server-100: vendored adapter `py_compile` passed; original plugin suite passed 37 tests; registration smoke passed; mocked encrypted send/decrypt smoke passed.
 - Existing VKEncrypt Node middleware regression: 7 passed.
-- No production Hermes files, config, tokens, or services were changed.
+- Plugin source was installed on server-100 at `~/.hermes/plugins/vk` and enabled as `vk-platform`; no token, seed, or gateway restart was performed.
+- Hermes `security audit` also reports pre-existing vulnerabilities in the server-wide Hermes venv (Pillow, pyasn1, MCP, PyNaCl, Pygments, and others); the vendored plugin adds no third-party Python dependency.
 
 ## Completion checklist
 
@@ -47,3 +48,4 @@ Evidence:
 - [x] Run candidate tests against Hermes runtime.
 - [x] Run plugin registration smoke test against server-100 Hermes source.
 - [x] Record live-test blocker and move task to done.
+- [x] Install and enable plugin source on server-100 without credentials or service restart.
