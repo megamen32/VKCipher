@@ -35,7 +35,7 @@ Selected `web3blind/hermes-vk-platform` over the two alternatives and vendored i
 Evidence:
 
 - Local VKEncrypt tests: 9 passed, including Node <-> Python round trips for Emoji/Cyrillic/Base64, seed derivation, peer session reuse, chunk limits, and secret permissions.
-- Hermes 0.19.1 on server-100: vendored adapter `py_compile` passed; original plugin suite passed 37 tests; registration smoke passed; mocked encrypted send/decrypt smoke passed.
+- Hermes 0.19.1 on server-100: vendored adapter `py_compile` passed; the original plugin suite passed 37 tests in a compatible Python environment with Hermes source; actual Hermes venv Python 3.11.15 passed plugin registration and encrypted send/decrypt smoke. Production venv has no `pytest`, so tests were not installed there.
 - Existing VKEncrypt Node middleware regression: 7 passed.
 - Plugin source was installed on server-100 at `~/.hermes/plugins/vk` and enabled as `vk-platform`; no token, seed, or gateway restart was performed.
 - Hermes `security audit` also reports pre-existing vulnerabilities in the server-wide Hermes venv (Pillow, pyasn1, MCP, PyNaCl, Pygments, and others); the vendored plugin adds no third-party Python dependency.
