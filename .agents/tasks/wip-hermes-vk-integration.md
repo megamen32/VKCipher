@@ -10,7 +10,12 @@ Acceptance: canonical project identified with source links; VK support and exten
 
 ## On Start
 
-DO `git mv todo-hermes-vk-integration.md wip-hermes-vk-integration.md`.
+started (UTC+3): 2026-08-01T04:55:26+03:00
+Executor: L (Lead)
+PID: 70972
+Harness: codex
+session identifier: 019ecd49-e250-70d3-80ec-9cc207a67f92
+Next action: parallel Explorer research and official-source web verification.
 
 ## Message layer
 
