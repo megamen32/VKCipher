@@ -34,6 +34,32 @@ openclaw gateway restart
 
 Установщик патчит только VK-плагин. Конфигурация ключей хранится по каналам и аккаунтам в `~/.openclaw/vkencrypt.json`; секреты должны находиться в отдельных файлах с правами `600`. Это отдельный Node-адаптер и не меняет поведение других каналов OpenClaw.
 
+## Hermes Agent + VK
+
+Для Hermes используется отдельный plugin-кандидат, vendored в
+`../integrations/hermes-vk-platform/`. Он работает через VK Community Long Poll
+и не меняет Hermes core. Установка на сервере с Hermes:
+
+```bash
+./scripts/install-hermes-vk-plugin.sh
+hermes plugins list
+hermes gateway restart
+```
+
+Для включения совместимого текстового шифрования создай seed-файл с правами
+`600` и укажи его в `~/.hermes/.env`:
+
+```bash
+printf '%s\n' 'та же seed-фраза, что в VKEncrypt' > ~/.hermes/vkencrypt-vk.seed
+chmod 600 ~/.hermes/vkencrypt-vk.seed
+printf '%s\n' 'VK_ENCRYPT_SEED_FILE=~/.hermes/vkencrypt-vk.seed' >> ~/.hermes/.env
+```
+
+Ответы Hermes шифруются тем же ключом и codec, которым пришло первое
+зашифрованное сообщение от peer. Без encrypted session plaintext fallback
+запрещён. Медиа пока блокируется в encrypted mode, поскольку контейнерное
+шифрование медиа ещё не перенесено в Hermes plugin.
+
 ## Установка и запуск
 
 ```bash
