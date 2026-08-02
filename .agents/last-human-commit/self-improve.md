@@ -29,3 +29,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? 1 quoting failure in remote Markdown-link verification; use a local `ssh ... bash -s` heredoc for multiline checks.
 - State: fixed now
+
+## 2026-08-02 — Hermes config-project operations map (correction)
+
+- What slowed or confused L? Initial map was placed in VKEncrypt before checking that `~/.hermes/config.yaml` targets `~/agents-projects/hermes-config/runtime/config.yaml`.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? 1 relocation correction; inspect config symlinks before choosing a documentation root.
+- State: fixed now
