@@ -37,9 +37,23 @@ from gateway.platforms.base import (
 )
 
 try:
-    from .vkencrypt import NoEncryptedSession, PendingWordFragment, VKEncryptSessions, is_encrypted_text
+    from .vkencrypt import (
+        NoEncryptedSession,
+        PendingWordFragment,
+        VKEncryptSessions,
+        WORDS_DICTIONARY_ID,
+        is_encrypted_text,
+        is_words_dictionary_text,
+    )
 except ImportError:  # Allows pytest to import this directory as a flat test root.
-    from vkencrypt import NoEncryptedSession, PendingWordFragment, VKEncryptSessions, is_encrypted_text  # type: ignore
+    from vkencrypt import (  # type: ignore
+        NoEncryptedSession,
+        PendingWordFragment,
+        VKEncryptSessions,
+        WORDS_DICTIONARY_ID,
+        is_encrypted_text,
+        is_words_dictionary_text,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -362,9 +376,10 @@ class VKAdapter(BasePlatformAdapter):
         self.vkencrypt = VKEncryptSessions.from_env(extra)
         if self.vkencrypt.enabled:
             logger.info(
-                "VKEncrypt text mode enabled; require_session=%s allow_unencrypted_media=%s",
+                "VKEncrypt text mode enabled; require_session=%s allow_unencrypted_media=%s dictionary=%s",
                 self.vkencrypt.require_session,
                 self.vkencrypt.allow_unencrypted_media,
+                WORDS_DICTIONARY_ID,
             )
 
         self._poll_task: Optional[asyncio.Task] = None
@@ -554,7 +569,12 @@ class VKAdapter(BasePlatformAdapter):
             if decrypted:
                 text = decrypted.text.strip()
             elif raw_text and (is_encrypted_text(raw_text) or self.vkencrypt.require_session):
-                logger.info("VKEncrypt: ignored untrusted or undecryptable text peer=%s", peer_id)
+                logger.info(
+                    "VKEncrypt: ignored untrusted or undecryptable text peer=%s words_candidate=%s length=%s",
+                    peer_id,
+                    is_words_dictionary_text(raw_text),
+                    len(raw_text),
+                )
                 return
 
         attachments = msg.get("attachments") or []

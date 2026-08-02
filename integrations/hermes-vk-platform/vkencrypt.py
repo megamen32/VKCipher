@@ -10,6 +10,7 @@ import base64
 import binascii
 import gzip
 import hashlib
+import logging
 import os
 import re
 import stat
@@ -59,6 +60,7 @@ WORDS_MAX_PACKET_BYTES = 1 << 20
 WORDS_MAX_PLAINTEXT_BYTES = 16 << 20
 WORDS_GROUP_TTL_SECONDS = 7 * 24 * 60 * 60
 WORDS_DICTIONARY_PATH = Path(__file__).with_name(f"{WORDS_DICTIONARY_ID}.txt")
+logger = logging.getLogger(__name__)
 _ENVELOPE_RE = re.compile(
     rf"^{re.escape(FORMAT_START)}(.+?){re.escape(FORMAT_MID)}"
     rf"([{''.join(CODEC_MARKERS.values())}]){re.escape(FORMAT_PAYLOAD)}(.+)$",
@@ -645,12 +647,20 @@ class VKEncryptSessions:
 
         if not is_words_dictionary_text(text):
             return None
+        failures: list[str] = []
         for key_id, key_hex in self.keys.items():
             try:
                 packet = _decrypt_word_packet(text, key_id, key_hex)
                 return self._accept_word_fragment(peer_id, packet, account_id)
-            except Exception:
+            except Exception as exc:
+                failures.append(type(exc).__name__)
                 continue
+        logger.info(
+            "VKEncrypt: dictionary candidate rejected peer=%s words=%s failures=%s",
+            peer_id,
+            len(str(text).split()),
+            ",".join(failures) or "none",
+        )
         return None
 
     def encrypt_outbound(self, peer_id: object, text: str, account_id: str = "default") -> str:
