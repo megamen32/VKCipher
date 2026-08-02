@@ -37,9 +37,9 @@ from gateway.platforms.base import (
 )
 
 try:
-    from .vkencrypt import NoEncryptedSession, VKEncryptSessions, is_encrypted_text
+    from .vkencrypt import NoEncryptedSession, PendingWordFragment, VKEncryptSessions, is_encrypted_text
 except ImportError:  # Allows pytest to import this directory as a flat test root.
-    from vkencrypt import NoEncryptedSession, VKEncryptSessions, is_encrypted_text  # type: ignore
+    from vkencrypt import NoEncryptedSession, PendingWordFragment, VKEncryptSessions, is_encrypted_text  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -542,6 +542,15 @@ class VKAdapter(BasePlatformAdapter):
                 decrypted = self.vkencrypt.decrypt_inbound(peer_id, raw_text)
             except Exception:
                 decrypted = None
+            if isinstance(decrypted, PendingWordFragment):
+                logger.info(
+                    "VKEncrypt: waiting for dictionary fragments peer=%s group=%s parts=%s/%s",
+                    peer_id,
+                    decrypted.group_id,
+                    decrypted.received_count,
+                    decrypted.part_count,
+                )
+                return
             if decrypted:
                 text = decrypted.text.strip()
             elif raw_text and (is_encrypted_text(raw_text) or self.vkencrypt.require_session):

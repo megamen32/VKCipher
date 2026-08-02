@@ -176,7 +176,11 @@ VK_USER_TOKEN=
 The vendored adapter can protect text with the same AES-256-GCM envelope as
 the browser userscript and `bot/node` middleware. It remembers the key and
 codec per `account + peer`, so a reply uses the same seed-derived key and
-Emoji/Cyrillic/Base64 codec as the incoming encrypted message.
+Emoji/Cyrillic/Base64 codec as the incoming encrypted message. It also
+auto-detects the markerless Russian-word transport when every token belongs
+to the exact `ru-common-8192-v4` dictionary and the authenticated `VKW1`
+packet validates. Multipart word messages are buffered by peer and group id;
+Hermes replies only after all authenticated parts arrive.
 
 Create a seed file shared with the browser client and keep it owner-readable:
 
@@ -195,6 +199,8 @@ Encrypted text mode is fail-closed by default:
 
 - plaintext inbound messages are ignored until an encrypted session is established;
 - replies without a remembered encrypted peer session are not sent in plaintext;
+- Russian-word detection is fail-closed: ordinary dictionary-only Russian text
+  remains ordinary text unless AES-GCM authentication succeeds;
 - media uploads are refused because media-container encryption is not part of this adapter yet.
 
 For an isolated compatibility test only, `VK_ENCRYPT_ALLOW_PLAINTEXT=true` permits
