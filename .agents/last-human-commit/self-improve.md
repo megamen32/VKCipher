@@ -21,3 +21,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? 2 deploy/restart cycles before startup logged `dictionary=ru-common-8192-v4`; add post-deploy module/version canary.
 - State: fixed now
+
+## 2026-08-02 — Hermes server-100 operations map (docs)
+
+- What slowed or confused L? First inventory used BSD `stat` flags on Linux and produced filesystem metadata instead of permissions; reran with `stat -c`.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? 1 quoting failure in remote Markdown-link verification; use a local `ssh ... bash -s` heredoc for multiline checks.
+- State: fixed now

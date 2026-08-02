@@ -2,6 +2,8 @@
 
 VK Messenger / VK community bot platform adapter for [Hermes Agent](https://github.com/NousResearch/hermes-agent).
 
+For the live Hermes installation on server-100, use the [Hermes operations map](../../docs/hermes-server-100.md) in this repository or its deployed entrypoint at `/home/roomhacker/.hermes/ops/README.md`.
+
 This plugin lets Hermes receive messages from VK community messages via **VK Group Long Poll** and reply through the VK `messages.send` API.
 
 ## Features
