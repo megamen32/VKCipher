@@ -37,3 +37,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? 1 relocation correction; inspect config symlinks before choosing a documentation root.
 - State: fixed now
+
+## 2026-08-02 — VKCipher and Hermes config main push (release)
+
+- What slowed or confused L? VKCipher had no remote `main`, so the target had to be created from verified `HEAD`.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? none; remote refs matched local heads after one push per repository.
+- State: fixed now
