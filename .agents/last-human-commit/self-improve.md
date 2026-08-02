@@ -45,3 +45,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? none; remote refs matched local heads after one push per repository.
 - State: fixed now
+
+## 2026-08-02 — Russian dictionary README (documentation)
+
+- What slowed or confused L? Existing root README overstated the word filter as safe; implementation and artifact checks were needed before rewriting it.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? 1 Python test collection failure without `PYTHONPATH`; documented the working cross-runtime command with the package path.
+- State: fixed now
