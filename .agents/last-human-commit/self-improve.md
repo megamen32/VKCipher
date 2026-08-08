@@ -53,3 +53,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? 1 Python test collection failure without `PYTHONPATH`; documented the working cross-runtime command with the package path.
 - State: fixed now
+
+## 2026-08-09 — VKEncrypt main push confirmation (release)
+
+- What slowed or confused L? Previous push report was not trusted by the user; current ref proof was needed.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? 1 explicit `git push origin main`; result `Everything up-to-date`, local and remote SHA equal.
+- State: fixed now
