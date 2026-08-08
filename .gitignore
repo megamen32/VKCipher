@@ -34,3 +34,8 @@ node_modules/
 test-results/
 playwright-report/
 .playwright/
+
+# Local agent tooling and generated graph state
+.claude/
+CLAUDE.md
+graphify-out/
