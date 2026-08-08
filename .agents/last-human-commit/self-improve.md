@@ -61,3 +61,11 @@
 - Which skill, MCP, or tool is missing? none
 - What operation or error repeated? 1 explicit `git push origin main`; result `Everything up-to-date`, local and remote SHA equal.
 - State: fixed now
+
+## 2026-08-09 — Branch-relative README install link (docs)
+
+- What slowed or confused L? GitHub relative links needed an explicit `?raw=1` redirect check; a plain blob link would not be a reliable Tampermonkey input.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? none; one curl matrix verified `main`, `dev`, and `master` as raw `text/plain`.
+- State: fixed now

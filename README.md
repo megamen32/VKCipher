@@ -9,7 +9,7 @@
 ### Компьютер — Tampermonkey
 
 1. Установите расширение [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) в свой браузер (Chrome / Firefox / Edge / Brave).
-2. Нажмите **[Установить VKEncrypt](https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js)** — Tampermonkey сам откроет окно установки. Жмите «Установить».
+2. Нажмите **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)** — GitHub отдаст файл из текущей ветки, а Tampermonkey сам откроет окно установки. Жмите «Установить».
 3. Откройте `vk.com`, `vk.ru` или `web.vk.me` и зайдите в любой чат.
 
 ### Chrome — тестовая MV3-сборка
@@ -44,7 +44,7 @@ npm run build:safari
 
 1. Установите бесплатное приложение [Userscripts](https://apps.apple.com/app/userscripts/id1463296397) из App Store.
 2. Откройте **Настройки iOS → Safari → Расширения → Userscripts** и включите расширение. 
-3. Откройте в safari: **[Установить VKEncrypt](https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js)**. Нажмите слева от адрессной строки на меню, в меню нажмите "Userscripts", в Userscripts наверху нажмите "Tap to install".  <img src="docs/media/install_ios.gif" width="280" alt="Установка расширения">
+3. Откройте в safari: **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)**. Нажмите слева от адрессной строки на меню, в меню нажмите "Userscripts", в Userscripts наверху нажмите "Tap to install".  <img src="docs/media/install_ios.gif" width="280" alt="Установка расширения">
 4. Откройте `vk.com`, `vk.ru` или `web.vk.me` в Safari и зайдите в любой чат.
 
 ### Android — Firefox Browser
@@ -53,7 +53,7 @@ Firefox — мобильный браузер, который поддержив
 
 1. Установите **[Firefox Browser](https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=ru)** из Google Play.
 2. Внутри Firefox установите **[Tampermonkey](https://addons.mozilla.org/ru/firefox/addon/tampermonkey/)**.
-3. Нажмите **[Установить VKEncrypt](https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js)** — Tampermonkey предложит установку.
+3. Нажмите **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)** — Tampermonkey предложит установку.
 4. Откройте `vk.com`, `vk.ru` или `web.vk.me` и зайдите в любой чат.
 
 ## Как пользоваться
