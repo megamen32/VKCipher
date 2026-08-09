@@ -29,7 +29,7 @@ hermes gateway restart
 3. Set the same VKEncrypt seed as the browser client without using Hermes UI:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-seed --restart
 ```
 
 4. Send a message to your VK community or an allowed VK chat.

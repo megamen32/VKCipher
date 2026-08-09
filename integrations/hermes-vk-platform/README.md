@@ -2,7 +2,7 @@
 
 The official VKCipher build of the VK Messenger / VK community bot adapter for
 [Hermes Agent](https://github.com/NousResearch/hermes-agent). This directory is
-the source installed by the [one-line installer](https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh).
+the source installed by the [one-line installer](https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/install-hermes-vk-plugin.sh).
 
 It is not the upstream `web3blind/hermes-vk-platform`: upstream code is kept as
 lineage, while this copy adds the VKEncrypt runtime and compatible encrypted
@@ -37,7 +37,7 @@ This plugin lets Hermes receive messages from VK community messages via **VK Gro
 ### One line
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh)
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/install-hermes-vk-plugin.sh)
 ```
 
 From upstream GitHub:
@@ -76,7 +76,7 @@ The Hermes setup UI configures VK access, but key rotation is intentionally a
 separate hidden-input command:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-seed --restart
 ```
 
 Use `set-key --restart` for a direct 64-hex key. The manager stores only the

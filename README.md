@@ -6,8 +6,8 @@
 automatic reply encryption, emoji/Cyrillic transports, and long-message
 assembly. The key stays local; VK sees only ciphertext.
 
-[Install in Tampermonkey](https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js) ·
-[Install Hermes adapter](https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh) ·
+[Install in Tampermonkey](https://github.com/megamen32/VKCipher/raw/refs/heads/main/extension/vkencrypt.user.js) ·
+[Install Hermes adapter](https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/install-hermes-vk-plugin.sh) ·
 [GitHub](https://github.com/megamen32/VKCipher)
 
 ## 30 seconds
@@ -15,7 +15,7 @@ assembly. The key stays local; VK sees only ciphertext.
 ### Browser
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/).
-2. Open **[Install VKEncrypt](https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js)**.
+2. Open **[Install VKEncrypt](https://github.com/megamen32/VKCipher/raw/refs/heads/main/extension/vkencrypt.user.js)**.
 3. Open a VK chat and create one seed phrase. Enter the same seed on every device.
 
 ### Hermes
@@ -27,20 +27,20 @@ and installs to `~/.hermes/plugins/vk`.
 Install from any Bash shell:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh)
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/install-hermes-vk-plugin.sh)
 ```
 
 Configure the VK community once, then set the same seed without opening Hermes UI:
 
 ```bash
 hermes gateway setup
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-seed --restart
 ```
 
 The seed prompt is hidden. To rotate to a direct 64-hex key:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-key --restart
+bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-key --restart
 ```
 
 Key rotation is immediate after the restart, but old messages require the old

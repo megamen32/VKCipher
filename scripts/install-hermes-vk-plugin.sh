@@ -42,4 +42,4 @@ find "$plugin_dir" -type d -exec chmod 755 {} +
 find "$plugin_dir" -type f -exec chmod 644 {} +
 printf 'Installed VKEncrypt Hermes VK plugin at %s\n' "$plugin_dir"
 printf 'Next: configure VK_GROUP_TOKEN/VK_GROUP_ID, set the seed, and restart: hermes gateway restart\n'
-printf 'Key manager: https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh\n'
+printf 'Key manager: https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh\n'
