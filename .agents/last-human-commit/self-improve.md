@@ -93,3 +93,11 @@
 - Which skill, MCP, or tool is missing? A release-link canary that tests branch-pinned raw URLs after every push would catch this before handoff.
 - What operation or error repeated? 2 published installer canary failures before pinning branch/URL; guard with clean-HOME install in release tests.
 - State: fixed now
+
+## 2026-08-09 — Hermes web encryption settings (implementation)
+
+- What slowed or confused L? Feature spans VKCipher plugin metadata and a separate Hermes core checkout; live deployment is an explicit approval boundary.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? Python dependency preflight for clean Hermes checkouts; smallest useful guard reports missing `httpx` before pytest.
+- What operation or error repeated? 2 UI matcher failures (`toBeChecked`/`toHaveAttribute` unavailable); use native DOM assertions or enable jest-dom in the Hermes test setup.
+- State: needs human decision
