@@ -251,3 +251,17 @@ def test_secret_file_must_be_owner_only(tmp_path, monkeypatch):
     monkeypatch.setenv("VK_ENCRYPT_SEED_FILE", str(seed_file))
     with pytest.raises(ValueError, match="owner-only"):
         VKEncryptSessions.from_env()
+
+
+def test_direct_seed_from_web_ui_overrides_existing_seed_file(tmp_path, monkeypatch):
+    seed_file = tmp_path / "seed"
+    seed_file.write_text(SEED, encoding="utf-8")
+    seed_file.chmod(0o600)
+    monkeypatch.setenv("VK_ENCRYPT_SEED_FILE", str(seed_file))
+    monkeypatch.setenv("VK_ENCRYPT_SEED", "web-ui-rotated-seed")
+    monkeypatch.delenv("VK_ENCRYPT_KEY_FILE", raising=False)
+    monkeypatch.delenv("VK_ENCRYPT_KEY", raising=False)
+
+    sessions = VKEncryptSessions.from_env()
+
+    assert sessions.keys == derive_keys_from_seed("web-ui-rotated-seed")

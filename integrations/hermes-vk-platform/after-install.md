@@ -26,7 +26,11 @@ VK_ALLOWED_PEERS=2000000001
 hermes gateway restart
 ```
 
-3. Set the same VKEncrypt seed as the browser client without using Hermes UI:
+3. Open Hermes **Channels -> VK Messenger**, enter the same VKEncrypt seed as
+   the browser client in the masked seed field, and keep **Answer unencrypted
+   messages** disabled. Save the platform and restart the gateway when prompted.
+
+For headless setup, set the same seed without using the Hermes UI:
 
 ```bash
 bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-seed --restart

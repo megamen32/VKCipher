@@ -1455,9 +1455,13 @@ def _build_adapter(config: Any) -> VKAdapter:
 def register(ctx) -> None:
     """Plugin entry point — called by the Hermes plugin system."""
     try:
-        from .setup_helper import setup_vk_platform
+        from .setup_helper import register_web_ui_env, setup_vk_platform
     except Exception:  # pragma: no cover - setup helper is optional at runtime
         setup_vk_platform = None
+        register_web_ui_env = None
+
+    if register_web_ui_env is not None:
+        register_web_ui_env()
 
     ctx.register_platform(
         name="vk",

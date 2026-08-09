@@ -70,10 +70,23 @@ hermes gateway restart
 
 If you prefer manual setup, edit `~/.hermes/.env` as shown below.
 
-### Change the key without Hermes UI
+### Configure encryption in Hermes Channels
 
-The Hermes setup UI configures VK access, but key rotation is intentionally a
-separate hidden-input command:
+Open **Channels -> VK Messenger** in the Hermes web UI. The VKEncrypt fields
+are shown there when this plugin is loaded:
+
+- **VKEncrypt seed** is a masked input. Saving it sets `VK_ENCRYPT_SEED` and
+  takes precedence over an existing `VK_ENCRYPT_SEED_FILE`.
+- **Answer unencrypted messages** is off by default. Keep it off to ignore
+  plaintext inbound messages and avoid plaintext replies. Enable it only for
+  an isolated compatibility test.
+
+Save the platform and restart the gateway when Hermes prompts you. The seed is
+never returned in cleartext by the API.
+
+### Change the key from the CLI
+
+For headless installs or recovery, use the separate hidden-input command:
 
 ```bash
 bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/hermes-vk-key.sh) set-seed --restart

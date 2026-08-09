@@ -10,6 +10,57 @@ import os
 from typing import Iterable
 
 
+WEB_UI_ENV_VARS = {
+    "VK_ENCRYPT_SEED_FILE": {
+        "description": "Path to the VKEncrypt seed file shared with the browser client",
+        "prompt": "VKEncrypt seed file path",
+        "category": "messaging",
+        "input_type": "text",
+    },
+    "VK_ENCRYPT_SEED": {
+        "description": "VKEncrypt seed phrase; enter a new value to rotate the key",
+        "prompt": "VKEncrypt seed (hidden)",
+        "category": "messaging",
+        "password": True,
+        "input_type": "text",
+    },
+    "VK_ENCRYPT_KEY_FILE": {
+        "description": "Path to a 64-hex-character VKEncrypt key file",
+        "prompt": "VKEncrypt key file path",
+        "category": "messaging",
+        "input_type": "text",
+    },
+    "VK_ENCRYPT_KEY": {
+        "description": "64-hex-character VKEncrypt key; prefer VK_ENCRYPT_KEY_FILE",
+        "prompt": "VKEncrypt key (hidden)",
+        "category": "messaging",
+        "password": True,
+        "input_type": "text",
+    },
+    "VK_ENCRYPT_ALLOW_PLAINTEXT": {
+        "description": "Allow Hermes to answer plaintext VK messages (unsafe; disabled by default)",
+        "prompt": "Answer unencrypted messages",
+        "category": "messaging",
+        "input_type": "boolean",
+    },
+}
+
+
+def register_web_ui_env(env_catalog: dict | None = None) -> dict:
+    """Expose VKEncrypt fields to Hermes' Channels UI when the plugin loads."""
+    if env_catalog is None:
+        try:
+            from hermes_cli.config import OPTIONAL_ENV_VARS
+        except ImportError:
+            return {}
+        env_catalog = OPTIONAL_ENV_VARS
+
+    for name, metadata in WEB_UI_ENV_VARS.items():
+        current = env_catalog.setdefault(name, {})
+        current.update(metadata)
+    return env_catalog
+
+
 def _ask(prompt: str, *, default: str = "") -> str:
     suffix = f" [{default}]" if default else ""
     try:

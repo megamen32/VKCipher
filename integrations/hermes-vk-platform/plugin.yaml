@@ -80,6 +80,8 @@ optional_env:
     description: "Allow plaintext fallback when no encrypted peer session exists (unsafe)"
     prompt: "Allow plaintext fallback?"
     secret: false
+    input_type: boolean
+    category: messaging
   - name: VK_ENCRYPT_ALLOW_UNENCRYPTED_MEDIA
     description: "Allow media uploads without VKEncrypt media encryption (unsafe)"
     prompt: "Allow unencrypted media?"

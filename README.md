@@ -30,7 +30,13 @@ Install from any Bash shell:
 bash <(curl -fsSL https://github.com/megamen32/VKCipher/raw/refs/heads/main/scripts/install-hermes-vk-plugin.sh)
 ```
 
-Configure the VK community once, then set the same seed without opening Hermes UI:
+Configure the VK community once. Then open Hermes **Channels -> VK Messenger**:
+
+- enter the same seed in the masked **VKEncrypt seed** field;
+- leave **Answer unencrypted messages** disabled for fail-closed operation;
+- save the platform settings and restart the gateway when Hermes prompts you.
+
+The CLI remains useful for headless installs or recovery:
 
 ```bash
 hermes gateway setup

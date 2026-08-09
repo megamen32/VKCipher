@@ -17,6 +17,7 @@ from adapter import (
     _looks_like_downloadable_attachment_url,
     _split_csv,
 )
+from setup_helper import register_web_ui_env
 
 
 @pytest.fixture(autouse=True)
@@ -37,6 +38,16 @@ def clear_vk_env(monkeypatch):
         "VK_MAX_ATTACHMENT_BYTES",
     ):
         monkeypatch.delenv(key, raising=False)
+
+
+def test_hermes_web_ui_exposes_encryption_toggle_and_seed_field():
+    catalog = {}
+
+    register_web_ui_env(catalog)
+
+    assert catalog["VK_ENCRYPT_ALLOW_PLAINTEXT"]["input_type"] == "boolean"
+    assert catalog["VK_ENCRYPT_SEED"]["password"] is True
+    assert catalog["VK_ENCRYPT_SEED"]["category"] == "messaging"
 
 
 def test_split_csv_accepts_strings_and_iterables():

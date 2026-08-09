@@ -554,11 +554,11 @@ class VKEncryptSessions:
         extra = extra or {}
         seed_file = str(os.getenv("VK_ENCRYPT_SEED_FILE") or extra.get("vkencrypt_seed_file") or "").strip()
         seed = str(os.getenv("VK_ENCRYPT_SEED") or extra.get("vkencrypt_seed") or "").strip()
-        if seed_file:
+        if seed_file and not seed:
             seed = _read_secret_file(seed_file)
         key_file = str(os.getenv("VK_ENCRYPT_KEY_FILE") or extra.get("vkencrypt_key_file") or "").strip()
         key = str(os.getenv("VK_ENCRYPT_KEY") or extra.get("vkencrypt_key") or "").strip()
-        if key_file:
+        if key_file and not key:
             key = _read_secret_file(key_file)
         keys = derive_keys_from_seed(seed) if seed else ({"k1": _normalize_key_hex(key)} if key else {})
         return cls(
