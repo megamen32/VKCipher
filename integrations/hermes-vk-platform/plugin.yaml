@@ -8,7 +8,7 @@ description: >
   and Group Long Poll to relay messages between VK chats and Hermes.
 author: Community
 license: MIT
-homepage: https://github.com/web3blind/hermes-vk-platform
+homepage: https://github.com/megamen32/VKCipher/tree/main/integrations/hermes-vk-platform
 requires_env:
   - name: VK_GROUP_TOKEN
     description: "VK community access token with messages permission"

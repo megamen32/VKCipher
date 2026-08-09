@@ -221,7 +221,7 @@ test('share instruction: пункт меню вставляет plaintext-инс
     sentText = await page.evaluate(() => window.__sentText || '');
 
     expect(sentText).toContain('VKEncrypt');
-    expect(sentText).toContain('https://github.com/megamen32/vkencrypt#readme');
+    expect(sentText).toContain('https://github.com/megamen32/VKCipher#readme');
     expect(sentText).toContain('CyberChef');
     expect(sentText).toContain('Ключ я отправлю отдельно');
     expect(sentText).not.toMatch(/^𓁗/u);

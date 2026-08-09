@@ -26,7 +26,13 @@ VK_ALLOWED_PEERS=2000000001
 hermes gateway restart
 ```
 
-3. Send a message to your VK community or an allowed VK chat.
+3. Set the same VKEncrypt seed as the browser client without using Hermes UI:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+```
+
+4. Send a message to your VK community or an allowed VK chat.
 
 ## Important safety note
 

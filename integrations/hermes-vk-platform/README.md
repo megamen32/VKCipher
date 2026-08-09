@@ -1,6 +1,12 @@
-# Hermes VK Platform Plugin
+# VKEncrypt Hermes VK Adapter
 
-VK Messenger / VK community bot platform adapter for [Hermes Agent](https://github.com/NousResearch/hermes-agent).
+The official VKCipher build of the VK Messenger / VK community bot adapter for
+[Hermes Agent](https://github.com/NousResearch/hermes-agent). This directory is
+the source installed by the [one-line installer](https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh).
+
+It is not the upstream `web3blind/hermes-vk-platform`: upstream code is kept as
+lineage, while this copy adds the VKEncrypt runtime and compatible encrypted
+reply handling.
 
 This plugin lets Hermes receive messages from VK community messages via **VK Group Long Poll** and reply through the VK `messages.send` API.
 
@@ -27,6 +33,12 @@ This plugin lets Hermes receive messages from VK community messages via **VK Gro
 - A VK community access token with `messages` permission.
 
 ## Install
+
+### One line
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh)
+```
 
 From upstream GitHub:
 
@@ -57,6 +69,18 @@ hermes gateway restart
 ```
 
 If you prefer manual setup, edit `~/.hermes/.env` as shown below.
+
+### Change the key without Hermes UI
+
+The Hermes setup UI configures VK access, but key rotation is intentionally a
+separate hidden-input command:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+```
+
+Use `set-key --restart` for a direct 64-hex key. The manager stores only the
+active mode in `~/.hermes/.env` and keeps secret files owner-readable.
 
 ## VK setup checklist
 

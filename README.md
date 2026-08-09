@@ -1,85 +1,86 @@
 # VKEncrypt
 
-Шифрует сообщения в ВКонтакте. Установка — 5 секунд.
+![VKEncrypt](docs/media/hermes-vkencrypt-banner.svg)
 
-<img src="docs/media/IMG_9299_part1.webp" width="280" alt="VKEncrypt (iPhone) в действии">&nbsp;&nbsp;<img src="docs/media/IMG_9299_part2.webp" width="280" alt="VKEncrypt (Android) расшифровка">
+**Private VK chats for humans and Hermes agents.** AES-256-GCM, one shared seed,
+automatic reply encryption, emoji/Cyrillic transports, and long-message
+assembly. The key stays local; VK sees only ciphertext.
 
-## Установка
+[Install in Tampermonkey](https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js) ·
+[Install Hermes adapter](https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh) ·
+[GitHub](https://github.com/megamen32/VKCipher)
 
-### Компьютер — Tampermonkey
+## 30 seconds
 
-1. Установите расширение [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) в свой браузер (Chrome / Firefox / Edge / Brave).
-2. Нажмите **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)** — GitHub отдаст файл из текущей ветки, а Tampermonkey сам откроет окно установки. Жмите «Установить».
-3. Откройте `vk.com`, `vk.ru` или `web.vk.me` и зайдите в любой чат.
+### Browser
 
-### Chrome — тестовая MV3-сборка
+1. Install [Tampermonkey](https://www.tampermonkey.net/).
+2. Open **[Install VKEncrypt](https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js)**.
+3. Open a VK chat and create one seed phrase. Enter the same seed on every device.
 
-Для ручной установки расширения соберите ZIP:
+### Hermes
 
-```bash
-npm run build:chrome
-```
+This is the **VKCipher adapter**, not the upstream `web3blind/hermes-vk-platform`.
+It lives in [`integrations/hermes-vk-platform`](integrations/hermes-vk-platform/)
+and installs to `~/.hermes/plugins/vk`.
 
-Архив появится в `dist/chrome/`. В Chrome откройте `chrome://extensions`, включите «Режим разработчика», выберите «Загрузить распакованное расширение» и укажите `dist/chrome/package`. ZIP предназначен для релизов и ручного тестирования; установка для обычных пользователей требует публикации в Chrome Web Store.
-
-Chrome-сборка пока использует тот же userscript как content script. Текстовые сообщения и UI используют существующую реализацию; cross-origin расшифровка медиа через `GM_xmlhttpRequest` ещё требует отдельного extension service-worker bridge.
-
-### Firefox — тестовая MV3-сборка
-
-```bash
-npm run build:firefox
-```
-
-Архив появится в `dist/firefox/`. Для локального теста распакуйте `dist/firefox/package` через `about:debugging → This Firefox → Load Temporary Add-on`; постоянная публичная установка требует подписи Mozilla.
-
-### Safari — Web Extension pipeline
+Install from any Bash shell:
 
 ```bash
-npm run build:safari
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/install-hermes-vk-plugin.sh)
 ```
 
-На macOS с Xcode команда дополнительно запускает `xcrun safari-web-extension-converter` и создаёт проект в `dist/safari/xcode/`. На Linux/CI без Apple tooling создаётся converter-ready source в `dist/safari/source/`.
+Configure the VK community once, then set the same seed without opening Hermes UI:
 
-### iPhone — Safari
+```bash
+hermes gateway setup
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-seed --restart
+```
 
-1. Установите бесплатное приложение [Userscripts](https://apps.apple.com/app/userscripts/id1463296397) из App Store.
-2. Откройте **Настройки iOS → Safari → Расширения → Userscripts** и включите расширение. 
-3. Откройте в safari: **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)**. Нажмите слева от адрессной строки на меню, в меню нажмите "Userscripts", в Userscripts наверху нажмите "Tap to install".  <img src="docs/media/install_ios.gif" width="280" alt="Установка расширения">
-4. Откройте `vk.com`, `vk.ru` или `web.vk.me` в Safari и зайдите в любой чат.
+The seed prompt is hidden. To rotate to a direct 64-hex key:
 
-### Android — Firefox Browser
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/megamen32/VKCipher/main/scripts/hermes-vk-key.sh) set-key --restart
+```
 
-Firefox — мобильный браузер, который поддерживает полноценные расширения.
+Key rotation is immediate after the restart, but old messages require the old
+seed/key. Never paste a seed into a public chat or commit it to Git.
 
-1. Установите **[Firefox Browser](https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=ru)** из Google Play.
-2. Внутри Firefox установите **[Tampermonkey](https://addons.mozilla.org/ru/firefox/addon/tampermonkey/)**.
-3. Нажмите **[Установить VKEncrypt](./extension/vkencrypt.user.js?raw=1)** — Tampermonkey предложит установку.
-4. Откройте `vk.com`, `vk.ru` или `web.vk.me` и зайдите в любой чат.
+## What works
 
-## Как пользоваться
+- VK `vk.com`, `vk.ru`, and `web.vk.me` userscript.
+- Hermes VK community bot with encrypted inbound and outbound text.
+- Emoji, Base64, and experimental Russian-word transports.
+- Long encrypted messages split and reassembled automatically.
+- Per-chat key selection in the browser; per-peer encrypted sessions in Hermes.
+- Voice and encrypted file flows in the browser adapter.
 
-При первом открытии чата в поле ввода появятся две иконки:
+## Security model
 
-- **🔒** — зашифровать набранное сообщение. Если ключей ещё нет — откроется окно настройки.
-- **🔑** — меню ключей, настроек и seed-фразы.
+The browser and Hermes derive compatible AES-256-GCM keys from the same seed
+using PBKDF2-SHA256. Hermes fails closed for plaintext when an encrypted peer
+session is required. This project is not independently audited; protect the
+seed like a password and verify the code before using it for sensitive traffic.
 
-Выбранный через меню 🔑 ключ запоминается отдельно для каждого диалога. При переходе в другой чат VKEncrypt автоматически восстанавливает его ключ; `vk.com`, `vk.ru` и `web.vk.me` используют общий идентификатор собеседника.
+## Links
 
-Введи секретную фразу (≥ 6 символов, лучше длиннее) — скрипт детерминированно сгенерирует ключи `k1..k4` и сохранит их. Собеседник с той же фразой получит те же ключи. Можно также добавлять свои 64-hex ключи через меню.
+- [Hermes adapter README](integrations/hermes-vk-platform/README.md)
+- [Hermes key manager](scripts/hermes-vk-key.sh)
+- [Browser extension details](extension/README.md)
+- [Russian dictionary and format](extension/dictionaries/README.md)
+- [Technical crypto notes](TECHNICAL.md)
+- [Bot middleware](bot/README.md)
+- [Chrome/Firefox/Safari builds](extension/README.md)
 
-Опционально: **автошифрование** (в меню 🔑) — тогда Enter сам шифрует и отправляет, а ручной 🔒 прячется. Shift+Enter остаётся переносом строки.
+## Development
 
-**Голосовые и вложения:** настройка «Шифровать вложения и голосовые» включена по умолчанию. Первый клик по микрофону начинает защищённую запись, второй останавливает её и прикрепляет AES-GCM файл `.vke`. У собеседника с тем же ключом он автоматически откроется как аудиоплеер. Запись отправляется как защищённый документ, а не как штатная voice-карточка VK: сервер VK принимает в неё только незашифрованное аудио.
+```bash
+npm install
+npm run build
+npm test:middleware
+node --test tests/hermes-installers.test.mjs
+```
 
-**Русские слова (экспериментально):** шифротекст можно передавать markerless-пакетами из фиксированного словаря `ru-common-8192-v4` (SHA-256: `d6ce1bca2d8715a390842773d65a88b643e9f95bec6e9e4eda7b81c0aa88a2a4`). Это 8192 уникальных русских слова по 13 бит на слово; denylist применяется как фильтр, но не гарантирует семантическую безопасность или незаметность. Длинные сообщения автоматически разбиваются на части до 4000 UTF-16 единиц VK и собираются обратно после получения всех частей. Подробности сборки, формата, совместимости и проверки — в [README словаря](extension/dictionaries/README.md).
-
-## Подробности
-
-- Как устроено шифрование, как менять ключи, формат шифра, безопасность — в [TECHNICAL.md](TECHNICAL.md).
-- Экспериментальная creator-vs-critic арена для оценки новых форматов шифротекста — в [arena/README.md](arena/README.md).
-- Установка VK-бота (опционально, если хотите перенести своего тг бота в вк) — в [bot/README.md](bot/README.md).
-- Детали по расширению для разработчиков — в [extension/README.md](extension/README.md).
-
-## Лицензия
+## License
 
 [MIT](LICENSE)

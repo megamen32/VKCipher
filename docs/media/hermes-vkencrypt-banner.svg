@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">VKEncrypt for Hermes</title>
+  <desc id="desc">Encrypted VK conversations for humans and Hermes agents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07152d"/>
+      <stop offset="0.55" stop-color="#123c75"/>
+      <stop offset="1" stop-color="#2787f5"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#79d7ff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#dff7ff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#79d7ff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#00102a" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="320" rx="28" fill="url(#bg)"/>
+  <circle cx="1060" cy="42" r="170" fill="#79d7ff" opacity="0.12"/>
+  <circle cx="1140" cy="286" r="210" fill="#00102a" opacity="0.2"/>
+  <path d="M0 250 C190 174 280 308 472 238 S760 154 1200 250" fill="none" stroke="url(#glow)" stroke-width="2" opacity="0.75"/>
+  <g filter="url(#shadow)" transform="translate(76 72)">
+    <rect x="0" y="0" width="154" height="154" rx="42" fill="#ffffff" opacity="0.96"/>
+    <path d="M45 71h64v48H45z" fill="#2787f5"/>
+    <path d="M58 72V57c0-13 9-23 20-23s20 10 20 23v15" fill="none" stroke="#2787f5" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="77" cy="94" r="7" fill="#ffffff"/>
+    <path d="M77 101v11" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <text x="278" y="130" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="64" font-weight="800" letter-spacing="-2">VKEncrypt</text>
+  <text x="282" y="184" fill="#dff7ff" font-family="Inter,Segoe UI,sans-serif" font-size="25" font-weight="600">Private VK chats for humans and Hermes agents</text>
+  <text x="282" y="230" fill="#ffffff" opacity="0.75" font-family="ui-monospace,SFMono-Regular,monospace" font-size="18">AES-256-GCM  /  one seed  /  encrypted replies</text>
+  <g transform="translate(925 92)" opacity="0.95">
+    <rect x="0" y="0" width="190" height="48" rx="24" fill="#ffffff" opacity="0.16"/>
+    <circle cx="28" cy="24" r="9" fill="#b9f5c3"/>
+    <text x="49" y="31" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="17" font-weight="700">HERMES READY</text>
+  </g>
+</svg>

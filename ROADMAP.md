@@ -9,5 +9,5 @@
 
 ## Current
 
-- VKEncrypt v5.5.1 maintenance and release follow-up.
+- VKEncrypt v5.6.0 Hermes packaging and release follow-up.
 - Hermes VK plugin integration: vendored adapter, text VKEncrypt bridge, Russian-word transport, and installer complete; live short/multipart deployment passes on server-100. Media remains queued.

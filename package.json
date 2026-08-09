@@ -1,15 +1,15 @@
 {
   "name": "vkencrypt",
-  "version": "5.5.1",
+  "version": "5.6.0",
   "description": "Шифрует сообщения в ВКонтакте. Установка — 5 секунд.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/megamen32/vkencrypt.git"
+    "url": "git+https://github.com/megamen32/VKCipher.git"
   },
-  "homepage": "https://github.com/megamen32/vkencrypt#readme",
+  "homepage": "https://github.com/megamen32/VKCipher#readme",
   "bugs": {
-    "url": "https://github.com/megamen32/vkencrypt/issues"
+    "url": "https://github.com/megamen32/VKCipher/issues"
   },
   "scripts": {
     "arena": "node arena/run.js",

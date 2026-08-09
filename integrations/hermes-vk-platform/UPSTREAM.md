@@ -1,6 +1,8 @@
-# Upstream
+# Lineage and Official Build
 
-This directory vendors [web3blind/hermes-vk-platform](https://github.com/web3blind/hermes-vk-platform).
+This directory is the official VKCipher Hermes adapter:
+[megamen32/VKCipher](https://github.com/megamen32/VKCipher/tree/main/integrations/hermes-vk-platform).
+It is derived from [web3blind/hermes-vk-platform](https://github.com/web3blind/hermes-vk-platform).
 
 - License: MIT, preserved in `LICENSE`.
 - Imported commit: `2f57f57` (2026-07-17), latest commit inspected on 2026-08-01.

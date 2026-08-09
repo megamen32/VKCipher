@@ -168,7 +168,7 @@ ESC закрывает открытое меню.
 
 ### Способ 4: синхронизировать ключи между устройствами
 
-1. На устройстве 1: перейди по [установочной ссылке](https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js) — установи/обнови userscript.
+1. На устройстве 1: перейди по [установочной ссылке](https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js) — установи/обнови userscript.
 2. На устройстве 2: то же самое.
 3. На обоих устройствах введи одну и ту же seed-фразу.
 

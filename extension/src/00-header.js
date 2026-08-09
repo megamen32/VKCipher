@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.5.1
+// @version      5.6.0
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -30,15 +30,15 @@
 // @connect      mycdn.me
 // @connect      *.mycdn.me
 // @run-at       document-idle
-// @updateURL    https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js
-// @downloadURL  https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js
+// @updateURL    https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js
+// @downloadURL  https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js
 // ==/UserScript==
 
 (function () {
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.5.1
+    // VK P2P AES-GCM v5.6.0
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -55,7 +55,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.5.1';
+    const APP_VERSION = '5.6.0';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
@@ -101,8 +101,8 @@
         words: { shortCode: CODEC_MARKERS.words, label: 'Русские слова (экспериментально)' }
     };
 
-    const README_URL = 'https://github.com/megamen32/vkencrypt#readme';
-    const INSTALL_URL = 'https://raw.githubusercontent.com/megamen32/vkencrypt/master/extension/vkencrypt.user.js';
+    const README_URL = 'https://github.com/megamen32/VKCipher#readme';
+    const INSTALL_URL = 'https://raw.githubusercontent.com/megamen32/VKCipher/main/extension/vkencrypt.user.js';
     const CYBERCHEF_URL = 'https://gchq.github.io/CyberChef/';
     const ONE_TIME_NOTE_SERVICES = [
         'PrivateBin: https://privatebin.net/',
