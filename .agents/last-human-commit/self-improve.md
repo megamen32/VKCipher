@@ -75,5 +75,5 @@
 - What slowed or confused L? Arena was absent on server; local Ollama `/v1` returned reasoning-only output and concurrent 12 GB VRAM loading stalled runs.
 - Which instruction should change? none
 - Which skill, MCP, or tool is missing? A detached remote-job helper with PID/log/checkpoint polling would reduce manual SSH orchestration.
-- What operation or error repeated? 5 local command-construction errors (wrong workdir/inline Python); validate checkout path before SSH and use one fixed remote runner.
+- What operation or error repeated? 6 local command-construction errors (wrong workdir/inline Python/bash); validate checkout path and shell syntax before SSH and use one fixed remote runner.
 - State: fixed now
