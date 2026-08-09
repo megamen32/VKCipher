@@ -77,3 +77,11 @@
 - Which skill, MCP, or tool is missing? A detached remote-job helper with PID/log/checkpoint polling would reduce manual SSH orchestration.
 - What operation or error repeated? 6 local command-construction errors (wrong workdir/inline Python/bash); validate checkout path and shell syntax before SSH and use one fixed remote runner.
 - State: fixed now
+
+## 2026-08-09 — Hermes VKEncrypt install/key instructions (docs)
+
+- What slowed or confused L? README documents the seed file, but setup helper omits encryption prompts and the Hermes UI does not expose them.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none; remote read-only config inventory was sufficient.
+- What operation or error repeated? none
+- State: fixed now
