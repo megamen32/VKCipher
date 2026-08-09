@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo_url="${VKENCRYPT_REPO_URL:-https://github.com/megamen32/VKCipher.git}"
+repo_branch="${VKENCRYPT_REPO_BRANCH:-main}"
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)
 repo_root=$(cd "$script_dir/.." 2>/dev/null && pwd || true)
 source_dir="$repo_root/integrations/hermes-vk-platform"
@@ -15,7 +16,7 @@ if [[ ! -f "$source_dir/plugin.yaml" ]]; then
     }
     bootstrap_dir=$(mktemp -d)
     trap 'rm -rf "$bootstrap_dir"' EXIT
-    git clone --depth 1 "$repo_url" "$bootstrap_dir/VKCipher" >/dev/null
+    git clone --branch "$repo_branch" --single-branch --depth 1 "$repo_url" "$bootstrap_dir/VKCipher" >/dev/null
     source_dir="$bootstrap_dir/VKCipher/integrations/hermes-vk-platform"
 fi
 hermes_home="${HERMES_HOME:-$HOME/.hermes}"
