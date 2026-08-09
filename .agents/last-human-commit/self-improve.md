@@ -85,3 +85,11 @@
 - Which skill, MCP, or tool is missing? none; remote read-only config inventory was sufficient.
 - What operation or error repeated? none
 - State: fixed now
+
+## 2026-08-09 — VKEncrypt Hermes product packaging (release)
+
+- What slowed or confused L? GitHub defaulted to stale `master`, and `raw.githubusercontent.com` cached the old installer; one-line canary exposed both.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? A release-link canary that tests branch-pinned raw URLs after every push would catch this before handoff.
+- What operation or error repeated? 2 published installer canary failures before pinning branch/URL; guard with clean-HOME install in release tests.
+- State: fixed now
