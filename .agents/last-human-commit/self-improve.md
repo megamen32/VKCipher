@@ -101,3 +101,11 @@
 - Which skill, MCP, or tool is missing? Python dependency preflight for clean Hermes checkouts; smallest useful guard reports missing `httpx` before pytest.
 - What operation or error repeated? 2 UI matcher failures (`toBeChecked`/`toHaveAttribute` unavailable); use native DOM assertions or enable jest-dom in the Hermes test setup.
 - State: needs human decision
+
+## 2026-08-12 — iPhone word transport and Hermes rollout (deployment)
+
+- What slowed or confused L? Live Hermes used a different salvage worktree and dashboard frontend than the initially inspected checkout; trace `systemd ExecStart` before applying UI changes.
+- Which instruction should change? none
+- Which skill, MCP, or tool is missing? none
+- What operation or error repeated? 1 rollout stopped on absent `hermes_cli/web_dist`; use conditional generated-bundle backup. 1 direct proxy probe returned 502 while gateway remained active; verify service and backend separately.
+- State: fixed now

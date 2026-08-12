@@ -51,3 +51,21 @@ Initial active-minute estimate (immutable): optimistic 20, likely 40, pessimisti
 - Live server-100 plugin/core installation and gateway restart remain pending
   explicit authorization; current live gateway was already stopped by an unrelated
   WhatsApp dependency failure, so no restart was attempted.
+
+## Follow-up execution (2026-08-12)
+
+- Diagnosed iPhone word failure: `dev` was 5.5.1 and its update URL pointed to
+  stale `megamen32/vkencrypt/master` 5.2.0; `master` has no word dictionary.
+- Made word transport independent of `CompressionStream`/`DecompressionStream`
+  for older iPhone WebKit; bumped userscript/package to 5.6.1.
+- Added compatibility/artifact regression tests; Node package tests 10/10 and
+  crypto tests 14/14 passed. Playwright browser tests remain blocked because
+  local Chromium is not installed.
+- Pushed VKCipher `main` and `dev` to `2558c3b465efec00` (verified with direct
+  `git ls-remote`); `master` intentionally remains the old compatibility branch.
+- Applied Hermes source commits to active server worktree as `e7e3fb5ec`, backed
+  up under `~/.hermes/rollbacks/vkencrypt-hermes-ui-20260812-184004`, installed
+  VK runtime files, rebuilt web bundle, restarted gateway PID 25990.
+- Live backend catalog canary: seed is masked text, plaintext policy is boolean,
+  default unset/false; gateway active. Dashboard proxy `127.0.0.1:8787` still
+  returns 502, so rendered browser canary is not claimed.
