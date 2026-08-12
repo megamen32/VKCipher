@@ -138,25 +138,16 @@
         return outputBytes.slice(4, expectedLength);
     }
 
+    // Keep the word transport independent of browser compression APIs. Safari
+    // WebKit versions used by iPhone userscript hosts may not expose the
+    // CompressionStream/DecompressionStream pair, while a Chrome sender can
+    // otherwise create packets that the iPhone cannot open.
     async function compressTransportBytes(bytes) {
-        if (typeof CompressionStream !== 'function') {
-            return { bytes, compressed: false };
-        }
-
-        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
-        const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-        return compressed.length < bytes.length
-            ? { bytes: compressed, compressed: true }
-            : { bytes, compressed: false };
+        return { bytes, compressed: false };
     }
 
-    async function decompressTransportBytes(bytes) {
-        if (typeof DecompressionStream !== 'function') {
-            throw new Error('Эта платформа не умеет распаковывать gzip');
-        }
-
-        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-        return new Uint8Array(await new Response(stream).arrayBuffer());
+    async function decompressTransportBytes() {
+        throw new Error('Сжатый словарный пакет не поддерживается этой версией');
     }
 
     function buildWordsPacket(payload, metadata) {

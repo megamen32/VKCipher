@@ -379,6 +379,25 @@ test('русские слова: markerless пакет расшифровыва�
     await expect(page.locator('.vk-dec-error')).toHaveCount(0);
 });
 
+test('русские слова: отправка не зависит от CompressionStream WebKit API', async ({ page }) => {
+    const derived = deriveDerivedKeys('iPhone word transport seed');
+
+    await openMockChat(page, {
+        url: 'https://web.vk.me/convo/1',
+        disableCompressionStreams: true,
+        gmSeed: {
+            vk_p2p_derived_keys_v1: JSON.stringify(derived),
+            vk_p2p_settings_v1: JSON.stringify(makeBaseSettings({ cipherCodec: 'words' })),
+        },
+    });
+
+    await setComposerText(page, 'Проверка русского словаря на iPhone');
+    await page.locator('#vk-p2p-enc-btn').click();
+
+    await expect.poll(async () => getComposerText(page)).not.toContain('Проверка русского словаря');
+    await expect(page.locator('.vk-p2p-toast')).toHaveCount(0);
+});
+
 test('русские слова: фрагменты собираются в одно сообщение после получения всех частей', async ({ page }) => {
     const seed = 'seed для сборки словарных частей';
     const derived = deriveDerivedKeys(seed);

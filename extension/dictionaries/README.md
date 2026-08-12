@@ -3,7 +3,10 @@
 `ru-common-8192-v4.txt` is the current Russian-word transport dictionary for
 VKEncrypt. It changes only how an authenticated encrypted payload is carried
 through VK text messages. It does not replace AES-256-GCM and it is not a
-password dictionary.
+password dictionary. The dictionary is embedded into the userscript at build
+time; the browser does not download it separately. Word packets are sent
+without gzip compression so iPhone/WebKit receivers do not depend on
+`CompressionStream` APIs.
 
 ## Current artifact
 
@@ -115,5 +118,4 @@ PYTHONPATH=integrations/hermes-vk-platform \
 ```
 
 The cross-runtime tests cover dictionary validation, markerless detection,
-Node-to-Python packets, Python-to-Node packets, gzip, and multipart
-reassembly.
+Node-to-Python packets, Python-to-Node packets, and multipart reassembly.

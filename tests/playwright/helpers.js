@@ -125,10 +125,10 @@ const MODERN_WEB_VK_BODY = `
 // стабы GM_*, форсит sync setTimeout, инжектит userscript через
 // page.evaluate (после полной загрузки страницы, когда document.body
 // уже существует и MutationObserver привязывается корректно).
-async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = null, url = 'about:blank', disableGMXmlhttpRequest = false, syncTimers = true, expectVkControls = true, forceVkRuntime = true } = {}) {
+async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = null, url = 'about:blank', disableGMXmlhttpRequest = false, disableCompressionStreams = false, syncTimers = true, expectVkControls = true, forceVkRuntime = true } = {}) {
     await page.goto(url);
     await page.evaluate(
-        ({ body, css, gmStubs, syncStub, seedScript, code, disableGMXmlhttpRequest, forceVkRuntime }) => {
+        ({ body, css, gmStubs, syncStub, seedScript, code, disableGMXmlhttpRequest, disableCompressionStreams, forceVkRuntime }) => {
             const style = document.createElement('style');
             style.textContent = css;
             document.head.appendChild(style);
@@ -140,6 +140,15 @@ async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = n
 
             if (disableGMXmlhttpRequest) {
                 window.GM_xmlhttpRequest = undefined;
+            }
+
+            if (disableCompressionStreams) {
+                window.CompressionStream = class {
+                    constructor() { throw new Error('CompressionStream disabled in test'); }
+                };
+                window.DecompressionStream = class {
+                    constructor() { throw new Error('DecompressionStream disabled in test'); }
+                };
             }
 
             window.__VKENC_TEST_FORCE_VK = forceVkRuntime;
@@ -163,6 +172,7 @@ async function openMockChat(page, { body = MOCK_BODY, css = MOCK_CSS, gmSeed = n
             seedScript: buildSeedStoreScript(gmSeed),
             code: loadUserscriptCode(),
             disableGMXmlhttpRequest,
+            disableCompressionStreams,
             forceVkRuntime,
         }
     );

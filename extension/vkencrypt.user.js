@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK P2P AES-GCM
 // @namespace    local
-// @version      5.6.0
+// @version      5.6.1
 // @description  P2P шифрование VK: seed-фраза, AES-GCM, словарный транспорт и сборка длинных сообщений
 // @author       VKEncrypt
 // @match        https://vk.com/*
@@ -38,7 +38,7 @@
     'use strict';
 
     // ============================================================
-    // VK P2P AES-GCM v5.6.0
+    // VK P2P AES-GCM v5.6.1
     //
     // Что умеет:
     // - НЕ показывает модалку сразу после установки.
@@ -55,7 +55,7 @@
     // ============================================================
 
     const APP_NAME = 'VK P2P AES-GCM';
-    const APP_VERSION = '5.6.0';
+    const APP_VERSION = '5.6.1';
 
     const FORMAT_START = '𓁗';
     const FORMAT_MID = 'Ⰴ';
@@ -1171,25 +1171,16 @@
         return outputBytes.slice(4, expectedLength);
     }
 
+    // Keep the word transport independent of browser compression APIs. Safari
+    // WebKit versions used by iPhone userscript hosts may not expose the
+    // CompressionStream/DecompressionStream pair, while a Chrome sender can
+    // otherwise create packets that the iPhone cannot open.
     async function compressTransportBytes(bytes) {
-        if (typeof CompressionStream !== 'function') {
-            return { bytes, compressed: false };
-        }
-
-        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
-        const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-        return compressed.length < bytes.length
-            ? { bytes: compressed, compressed: true }
-            : { bytes, compressed: false };
+        return { bytes, compressed: false };
     }
 
-    async function decompressTransportBytes(bytes) {
-        if (typeof DecompressionStream !== 'function') {
-            throw new Error('Эта платформа не умеет распаковывать gzip');
-        }
-
-        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-        return new Uint8Array(await new Response(stream).arrayBuffer());
+    async function decompressTransportBytes() {
+        throw new Error('Сжатый словарный пакет не поддерживается этой версией');
     }
 
     function buildWordsPacket(payload, metadata) {
